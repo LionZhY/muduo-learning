@@ -19,6 +19,7 @@ public:
     // 将时间戳转换为字符串格式
     std::string toString() const;// const表示不会修改成员变量，保证toString仅用于读取数据
 
+    
 private:
     int64_t microSecondSinceEpoch_;// 以微秒为单位的时间戳值
 
