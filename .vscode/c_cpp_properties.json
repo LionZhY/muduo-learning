@@ -2,11 +2,15 @@
     "configurations": [
         {
             "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/**"
+            "includePath": [ // 头文件搜索路径
+                // "${workspaceFolder}/**"
+                "${workspaceFolder}/include", // 项目include目录
+                "${workspaceFolder}/src",       // 项目src目录
+                "/usr/include",                 // 系统标准头文件路径
+                "/usr/local/include"            // 额外安装的库的头文件路径
             ],
-            "defines": [],
-            "compilerPath": "/usr/bin/g++-11",
+            "defines": [], // 预处理定义宏
+            "compilerPath": "/usr/bin/g++-11", // 编译器路径
             "cStandard": "c17",
             "cppStandard": "gnu++17",
             "intelliSenseMode": "linux-gcc-x64"

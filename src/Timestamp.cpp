@@ -38,9 +38,9 @@ std::string Timestamp::toString() const // 加const限定该成员函数不能�
 }
 
 // 测试代码（需要测试可以取消注释）
-#include <iostream>
-int main() {
-    std::cout << Timestamp::now().toString() << std::endl;
-    return 0;
-}
+// #include <iostream>
+// int main() {
+//     std::cout << Timestamp::now().toString() << std::endl;
+//     return 0;
+// }
 
