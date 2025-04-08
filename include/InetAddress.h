@@ -15,7 +15,7 @@ class InetAddress
 public:
     // 构造
     // 允许通过 IP 和端口字符串形式来创建一个 socket 地址
-    explicit InetAddress(uint16_t port = 0, std::string ip = "127.0.0.1");
+    explicit InetAddress(uint16_t port = 0, std::string ip = "127.0.0.1"); // 默认port=0，ip = 127.0.0.1
 
     // 重载构造
     // 允许直接使用一个已有的 sockaddr_in 对象来构造 InetAddress 类实例
@@ -25,17 +25,19 @@ public:
 
     }
 
-    // 返回当前对象所表示的 IP 地址字符串 （如 "192.168.1.1"）
-    std::string toIp() const;
-
-    // 返回 IP 和端口的组合字符串（如 "192.168.1.1:8080"）
-    std::string toIpPort() const;
-
     // 返回端口号（主机字节序）
     uint16_t toPort() const;
 
+    // 返回当前对象所表示的 IP 地址字符串 （如 "192.168.1.1"）
+    std::string toIp() const;
+
+    // 返回 IP 和端口的组合字符串 "IP:Port"（如 "192.168.1.1:8080"）
+    std::string toIpPort() const;
+
+
+
     // 获取底层的sockaddr_in指针
-    const sockaddr_in *getSockAddr() const      { return &addr_; }
+    const sockaddr_in * getSockAddr() const     { return &addr_; }
 
     // 设置底层地址结构
     void setSockAddr(const sockaddr_in &addr)   { addr_ = addr; }
