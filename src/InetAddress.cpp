@@ -6,18 +6,19 @@
 // 构造  初始化 IPv4 地址对象
 InetAddress::InetAddress(uint16_t port, std::string ip)
 {
-    ::memset(&addr_, 0, sizeof(addr_));     // 清零结构体，避免脏数据
-    addr_.sin_family = AF_INET;             // 设置地址族为 IPv4
-    addr_.sin_port = ::htons(port);         // 本地主机字节序，转为网络字节序
-    addr_.sin_addr.s_addr = ::inet_addr(ip.c_str()); // 字符串IP转为网络二进制格式
-
+    ::memset(&addr_, 0, sizeof(addr_));     // 清零结构体addr_ , 所有字段都设为0
+    
+    // 设置 sockaddr_in 结构体
+    addr_.sin_family = AF_INET;                      // 设置地址族为 IPv4
+    addr_.sin_port = ::htons(port);                  // port : 本地主机字节序（小端） -> 网络字节序（大端）
+    addr_.sin_addr.s_addr = ::inet_addr(ip.c_str()); // ip   : 点分十进制字符串 -> 网络二进制格式
 }
 
 
 // 获取端口号port（主机字节序）
 uint16_t InetAddress::toPort() const
 {
-    return ::ntohs(addr_.sin_port); // 网络序 -> 主机序
+    return ::ntohs(addr_.sin_port); // port : 网络序 -> 主机序
 }
 
 
@@ -26,7 +27,7 @@ std::string InetAddress::toIp() const
 {
     // addr
     char buf[64] = {0}; // 缓冲区，用于存放IP字符串
-    ::inet_ntop(AF_INET, &addr_.sin_addr, buf, sizeof buf); // 将网络地址转为点分十进制字符串
+    ::inet_ntop(AF_INET, &addr_.sin_addr, buf, sizeof buf); // ip : 网络二进制 -> 点分十进制字符串
     return buf; // 转换为std::string 返回
 }
 
@@ -36,11 +37,12 @@ std::string InetAddress::toIpPort() const
 {
     // ip:port
     char buf[64] = {0};
-    ::inet_ntop(AF_INET, &addr_.sin_addr, buf, sizeof buf); // IP 转字符
+    ::inet_ntop(AF_INET, &addr_.sin_addr, buf, sizeof buf); // ip : 网络二进制 -> 点分十进制字符串 
     size_t end = ::strlen(buf); // 找到当前字符串结尾的位置
 
-    uint16_t port = ::ntohs(addr_.sin_port); // 网络序 ->主机序，得到真实端口
-    sprintf(buf+end, ":%u", port); // 拼接 ":端口号"
+    uint16_t port = ::ntohs(addr_.sin_port);                // port : 网络序 -> 主机序
+
+    sprintf(buf+end, ":%u", port); // buf末尾拼接 ":端口号"
     return buf;
 }
 
