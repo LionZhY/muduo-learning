@@ -13,7 +13,7 @@ class Thread : noncopyable
 {
 public:
     
-    using ThreadFunc = std::function<void()>;// ThreadFunc 作为std::function<void()>类型的别名
+    using ThreadFunc = std::function<void()>;// ThreadFunc 作为回调std::function<void()>类型的别名
 
     // 构造和析构
     explicit Thread(ThreadFunc, const std::string &name = std::string());// 接收线程回调函数func，和线程名称name
