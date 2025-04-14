@@ -34,7 +34,7 @@ public:
     virtual void removeChannel(Channel* Channel) = 0;                      
 
 
-    // 判断参数channel是否在当前的poller中
+    // 判断一个 Channel 是否已经被添加到 Poller 的监听列表中
     bool hasChannel(Channel* channel) const;
 
 
