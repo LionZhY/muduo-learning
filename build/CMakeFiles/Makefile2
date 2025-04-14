@@ -63,42 +63,49 @@ CMAKE_BINARY_DIR = /home/zhangyan/projects/muduo-learning/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/muduo-learning.dir/all
+all: src/all
+all: example/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
-preinstall:
+preinstall: src/preinstall
+preinstall: example/preinstall
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/muduo-learning.dir/clean
+clean: src/clean
+clean: example/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/muduo-learning.dir
+# Directory level rules for directory example
 
-# All Build rule for target.
-CMakeFiles/muduo-learning.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/muduo-learning.dir/build.make CMakeFiles/muduo-learning.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/muduo-learning.dir/build.make CMakeFiles/muduo-learning.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/zhangyan/projects/muduo-learning/build/CMakeFiles --progress-num=1,2 "Built target muduo-learning"
-.PHONY : CMakeFiles/muduo-learning.dir/all
+# Recursive "all" directory target.
+example/all:
+.PHONY : example/all
 
-# Build rule for subdir invocation for target.
-CMakeFiles/muduo-learning.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangyan/projects/muduo-learning/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/muduo-learning.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangyan/projects/muduo-learning/build/CMakeFiles 0
-.PHONY : CMakeFiles/muduo-learning.dir/rule
+# Recursive "preinstall" directory target.
+example/preinstall:
+.PHONY : example/preinstall
 
-# Convenience name for target.
-muduo-learning: CMakeFiles/muduo-learning.dir/rule
-.PHONY : muduo-learning
+# Recursive "clean" directory target.
+example/clean:
+.PHONY : example/clean
 
-# clean rule for target.
-CMakeFiles/muduo-learning.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/muduo-learning.dir/build.make CMakeFiles/muduo-learning.dir/clean
-.PHONY : CMakeFiles/muduo-learning.dir/clean
+#=============================================================================
+# Directory level rules for directory src
+
+# Recursive "all" directory target.
+src/all:
+.PHONY : src/all
+
+# Recursive "preinstall" directory target.
+src/preinstall:
+.PHONY : src/preinstall
+
+# Recursive "clean" directory target.
+src/clean:
+.PHONY : src/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

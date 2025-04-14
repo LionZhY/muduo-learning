@@ -1,3 +1,6 @@
-/home/zhangyan/projects/muduo-learning/build/CMakeFiles/muduo-learning.dir
 /home/zhangyan/projects/muduo-learning/build/CMakeFiles/edit_cache.dir
 /home/zhangyan/projects/muduo-learning/build/CMakeFiles/rebuild_cache.dir
+/home/zhangyan/projects/muduo-learning/build/src/CMakeFiles/edit_cache.dir
+/home/zhangyan/projects/muduo-learning/build/src/CMakeFiles/rebuild_cache.dir
+/home/zhangyan/projects/muduo-learning/build/example/CMakeFiles/edit_cache.dir
+/home/zhangyan/projects/muduo-learning/build/example/CMakeFiles/rebuild_cache.dir

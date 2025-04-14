@@ -12,19 +12,19 @@
 
 // LOG_INFO("%s %d", arg1, arg2) 
 // 定义宏 LOG_INFO，用于记录 INFO 级别的日志
-#define LOG_INFO(logmsgFormat, ...)                                 \
-    do                                                              \
-    {                                                               \
-        Logger &logger = Logger::instance(); /*获取单例Logger实例*/  \
-        logger.setLogLevel(INFO); /*设置当前日志级别*/                \
-        char buf[1024] = {0}; /*存储格式化后的日志信息*/              \
+#define LOG_INFO(logmsgFormat, ...)                                    \
+    do                                                                 \
+    {                                                                  \
+        Logger &logger = Logger::instance(); /*获取单例Logger实例*/     \
+        logger.setLogLevel(INFO);            /*设置当前日志级别*/        \
+        char buf[1024] = {0};                /*存储格式化后的日志信息*/  \
         snprintf(buf, 1024, logmsgFormat, ##__VA_ARGS__); /*将格式化的日志信息写入buf*/  \
-        logger.log(buf);  /*将格式化后的日志内容写入日志系统*/         \
+        logger.log(buf);                     /*将格式化后的日志内容写入日志系统*/         \
     } while(0) // do {}while(0) 是常见的宏封装技巧，保证宏的代码块在调用时，不会因为分号或换行导致语法错误
 
 
 // LOG_ERROR
-#define LOG_ERROR(logmsgFormat, ...)                        \                              
+#define LOG_ERROR(logmsgFormat, ...)                        \
     do                                                      \
     {                                                       \
         Logger &logger = Logger::instance();                \
