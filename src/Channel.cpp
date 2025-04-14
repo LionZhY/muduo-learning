@@ -1,16 +1,18 @@
-#include <sys/epoll.h>
+#include <sys/epoll.h> // 提供 epoll 事件类型 EPOLLIN、EPOLLOUT 等
 
 #include "Channel.h"
 #include "EventLoop.h"
 #include "Logger.h"
 
-// 事件定义
-const int Channel::kNoneEvent = 0; // 空事件
-const int Channel::kReadEvent = EPOLLIN | EPOLLPRI; // 读事件
-const int Channel::kWriteEvent = EPOLLOUT; // 写事件
 
-// EventLoop: ChannelList Poller
-Channel::Channel(EventLoop *loop, int fd) // 构造
+// 事件定义
+const int Channel::kNoneEvent  = 0;                  // 不监听任何事件
+const int Channel::kReadEvent  = EPOLLIN | EPOLLPRI; // 监听EPOLLIN（可读）
+const int Channel::kWriteEvent = EPOLLOUT;           // 监听EPOLLOUT（可写）
+
+
+// 构造和析构
+Channel::Channel(EventLoop *loop, int fd) 
     : loop_(loop)
     , fd_(fd)
     , events_(0)
@@ -21,7 +23,7 @@ Channel::Channel(EventLoop *loop, int fd) // 构造
 
 }
 
-Channel::~Channel() // 析构
+Channel::~Channel() 
 {
 
 }
@@ -35,42 +37,48 @@ Channel::~Channel() // 析构
 
  
  // tie() 绑定TcpConnection
-void Channel::tie(const std::shared_ptr<void> &obj) // TcpConnection 持有 Channel，但 Channel 也需要调用 TcpConnection 的回调函数
+void Channel::tie(const std::shared_ptr<void> &obj) // tie_观察传进来的智能指针 obj
 {
-    tie_ = obj; // tie_ 绑定 TcpConnection，保证 TcpConnection 不被提前销毁
-    tied_ = true;
+    tie_ = obj;   // tie_ 绑定 TcpConnection，保证 TcpConnection 不被提前销毁
+    tied_ = true; // 标记已绑定
 }
+
+
 
 //update 和 remove => EpollPoller 更新channel在poller中的状态
 /**
- * 当改变channel所表示的fd的events事件后，update负责再poller里面更改fd相应的事件epoll_ctl
+ * 当改变channel所表示的fd的events事件后，update负责在poller里面更改fd相应的事件epoll_ctl
  **/
 
  // 当Channel关注的事件改变时，调用update()通知EventLoop，再由EventLoop调用Poller的epoll_ctl()更新监听事件
  void Channel::update()
  {
-    // 通过Channel所属的EventLoop，调用poller的相应方法，注册fd的events事件
-    loop_->removeChannel(this); 
+    // add code ...
+    // loop_->updateChannel(this); 
  }
 
-// 该Channel不再需要监听时，从Poller里移除
+
+
+// 在所属的EventLoop中把当前的Channel删除
  void Channel::remove()
  {
-    loop_->removeChannel(this);
+    // add code ...
+    // loop_->removeChannel(this);
  }
+
 
 
  // handleEvent() 事件处理
  void Channel::handleEvent(Timestamp receiveTime)
  {
-    if (tied_) // 如果Channel绑定了TcpConnection，先尝试lock()提升weak_ptr，确保TcpConnection还在
+    if (tied_) // 如果Channel绑定了TcpConnection
     {
-        std::shared_ptr<void> guard = tie_.lock();
+        std::shared_ptr<void> guard = tie_.lock(); // 先尝试lock()提升weak_ptr，确保TcpConnection还在
         if (guard) // 如果TcpConnection还在，就调用handleEventWithGuard()处理事件
         {
             handleEventWithGuard(receiveTime);
         }
-        // 如果提升失败了，就不做任何处理了，说明Channel的TcpConnection对象已经不存在了
+        // 如果lock提升失败了，就不做任何处理了，说明Channel的TcpConnection对象已经不存在了
     }
     else 
     {
@@ -79,7 +87,7 @@ void Channel::tie(const std::shared_ptr<void> &obj) // TcpConnection 持有 Chan
  }
 
 
- // handleEventWithGuard 具体事件处理
+ // handleEventWithGuard  根据Poller通知Channel发生的具体事件，由Channel负责调用具体的回调
  void Channel::handleEventWithGuard(Timestamp receiveTime)
  {
     // 日志记录revents_
