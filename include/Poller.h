@@ -21,7 +21,7 @@ public:
     Poller(EventLoop* loop); // 参数是该 Poller 所属的 EventLoop
 
     // 虚析构
-    virtual ~Poller() = default; // 确保基类指针删除派生类对象时能正确析构
+    virtual ~Poller() = default; 
 
 
     // 给所有IO复用保留同一接口    (纯虚函数)
@@ -38,10 +38,8 @@ public:
     bool hasChannel(Channel* channel) const;
 
 
-    // EventLoop可以通过该接口获取默认的IO复用的具体实现
     // 创建并返回一个默认的 Poller 子类对象
     static Poller* newDefaultPoller(EventLoop* loop); // 在 DefaultPoller.cc中实现
-
 
 
 protected:

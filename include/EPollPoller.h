@@ -16,21 +16,25 @@
 
 class Channel;
 
-class EPollPoller : public Poller
+class EPollPoller : public Poller // 公共继承 Poller
 {
 public:
-    // 构造 析构
+    // 构造 
     EPollPoller(EventLoop* loop);
+
+    // 虚析构 （重写父类的虚析构）
     ~EPollPoller() override;
 
-    // 重写基类Poller的（纯虚函数）方法
+
+    /*
+    **重写基类Poller的（纯虚函数）方法  poll()  updateChannel()  removeChannel()
+    */
     Timestamp poll(int timeoutMs, ChannelList* activeChannels) override;
     void updateChannel(Channel* channel) override;
     void removeChannel(Channel* channel) override;
 
 
 private:
-    static const int kInitEventListSize = 16;
 
     // 填写活跃的连接
     void fillActiveChannels(int numEvents, ChannelList* activeChannels) const;
@@ -39,10 +43,12 @@ private:
     void update(int operation, Channel* channel);
 
 
-    using EventList = std::vector<epoll_event>;
+    static const int kInitEventListSize = 16; // 初始化epoll事件列表(vector<epoll_event>)的容量为16
 
-    int epollfd_;       // epoll_creat 创建返回的fd保存在epollfd_中
-    EventList events_;  // 存放epoll_wait返回的所有发生的事件的文件描述符事件集
+    using EventList = std::vector<epoll_event>; // 容器类型别名  epoll事件列表
+
+    int epollfd_;       // 用于标识epoll实例   epoll_creat 创建返回的fd保存在epollfd_中
+    EventList events_;  // 存放epoll_wait得到的事件列表，初始容量为16
 
 
 };
