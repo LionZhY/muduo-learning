@@ -7,7 +7,7 @@
 #include "Channel.h"
 
 
-// index (channel 状态)
+// index (标识 channel 当前状态)
 const int kNew = -1;    // 某个channel还未添加至poller      // channel的成员index_初始化为-1
 const int kAdded = 1;   // 某个channel已经添加至poller
 const int kDeleted = 2; // 某个channel已经从poller移除(曾添加过，现已删除)
@@ -123,26 +123,59 @@ void EPollPoller::updateChannel(Channel* channel)
 // 从poller中移除不再需要监听的channel
 void EPollPoller::removeChannel(Channel* channel)
 {
+    int fd = channel->fd();
+    channels_.erase(fd); // 从 fd->Channel 映射表中删除
 
+    LOG_INFO("func=%s => fd=%d\n", __FUNCTION__, fd);
 
+    int index = channel->index();
+    if (index == kAdded) // 若在 epoll 中注册过
+    {
+        update(EPOLL_CTL_DEL, channel); // 从epoll中注销
+    }
+
+    channel->set_index(kNew); // 设置为“未添加”状态
 }
 
 
 
 
-
-
-// 填写活跃的连接
-void EPollPoller::fillActiveChannels(int numEvents, ChannelList* activeChannels)
+// 将就绪事件对应的 Channel 填入 activeChannels
+void EPollPoller::fillActiveChannels(int numEvents, ChannelList* activeChannels) const
 {
-
+    for (int i = 0; i < numEvents; ++i) 
+    {
+        Channel* channel = static_cast<Channel*>(events_[i].data.ptr); // 获取epoll_event对应的channel指针
+        channel->set_revents(events_[i].events); // 设置实际触发的事件
+        activeChannels->push_back(channel); // EventLoop就拿到了它的Poller给它返回的所有发生事件的channel列表了
+    }
 
 }
 
 
 
-// 更新channel通道，其实就是调用epoll_ctl
+// 更新channel通道，封装epoll_ctl系统调用 (其实就是调用epoll_ctl add/mod/del)
 void EPollPoller::update(int operation, Channel* channel)
 {
+    epoll_event event;
+    ::memset(&event, 0, sizeof(event)); // 清空结构体，防止脏数据
+
+    int fd = channel->fd();
+
+    event.events   = channel->events(); // 设置关心的事件
+    event.data.fd  = fd;
+    event.data.ptr = channel;           // 传入channel指针，用于回调
+
+    if (::epoll_ctl(epollfd_, operation, fd, &event) < 0) // 执行epoll_ctl操作
+    {
+        if (operation == EPOLL_CTL_DEL)
+        {
+            LOG_ERROR("epoll_ctl del error:%d\n", errno); // 删除失败，打印错误
+        }
+        else 
+        {
+            LOG_FATAL("epoll_ctl add/mod error:%d\n", errno); // 添加or修改失败，终止程序
+        }
+    }
 
 }
