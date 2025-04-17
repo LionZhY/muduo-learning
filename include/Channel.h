@@ -106,7 +106,7 @@ private:
     int events_;        // 注册fd感兴趣的事件 (如EPOLLIN EPOLLOUT)
     int revents_;       // Poller返回的实际发生的事件
 
-    int index_;         // Poller内部标识
+    int index_;         // Poller内部标识（channel对于Poller的状态，“未添加、已添加、已删除”）
 
     // 生命周期管理
     std::weak_ptr<void> tie_; // 观察绑定的shared_ptr，防止对象提前销毁

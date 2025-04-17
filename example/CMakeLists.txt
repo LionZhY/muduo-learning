@@ -1,5 +1,5 @@
 # 获取当前目录下的所有源文件
-file(GLOB EXAMPLE_SRCS ${CMAKE_CURRENT_BINARY_DIR}/*.cc)
+file(GLOB EXAMPLE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
 
 # 创建可执行文件
 add_executable(testserver ${EXAMPLE_SRCS})

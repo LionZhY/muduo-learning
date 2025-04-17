@@ -20,15 +20,13 @@ class EPollPoller : public Poller // 公共继承 Poller
 {
 public:
     // 构造 
-    EPollPoller(EventLoop* loop);
+    EPollPoller(EventLoop* loop); // 参数是指向该 EPollPoller 所属的 EventLoop 的指针
 
     // 虚析构 （重写父类的虚析构）
     ~EPollPoller() override;
 
 
-    /*
-    **重写基类Poller的（纯虚函数）方法  poll()  updateChannel()  removeChannel()
-    */
+    // 重写基类Poller的（纯虚函数）方法  poll()  updateChannel()  removeChannel()
     Timestamp poll(int timeoutMs, ChannelList* activeChannels) override;
     void updateChannel(Channel* channel) override;
     void removeChannel(Channel* channel) override;

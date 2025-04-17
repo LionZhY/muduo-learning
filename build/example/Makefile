@@ -67,7 +67,7 @@ CMAKE_BINARY_DIR = /home/zhangyan/projects/muduo-learning/build
 
 # Special rule for the target edit_cache
 edit_cache:
-	@echo "No interactive CMake dialog available..."
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
 	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
 .PHONY : edit_cache
 
@@ -77,7 +77,7 @@ edit_cache/fast: edit_cache
 
 # Special rule for the target rebuild_cache
 rebuild_cache:
-	@echo "Running CMake to regenerate build system..."
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
 	/usr/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
@@ -116,6 +116,44 @@ depend:
 	cd /home/zhangyan/projects/muduo-learning/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
+# Convenience name for target.
+example/CMakeFiles/testserver.dir/rule:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 example/CMakeFiles/testserver.dir/rule
+.PHONY : example/CMakeFiles/testserver.dir/rule
+
+# Convenience name for target.
+testserver: example/CMakeFiles/testserver.dir/rule
+.PHONY : testserver
+
+# fast build rule for target.
+testserver/fast:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f example/CMakeFiles/testserver.dir/build.make example/CMakeFiles/testserver.dir/build
+.PHONY : testserver/fast
+
+testserver.o: testserver.cc.o
+.PHONY : testserver.o
+
+# target to build an object file
+testserver.cc.o:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f example/CMakeFiles/testserver.dir/build.make example/CMakeFiles/testserver.dir/testserver.cc.o
+.PHONY : testserver.cc.o
+
+testserver.i: testserver.cc.i
+.PHONY : testserver.i
+
+# target to preprocess a source file
+testserver.cc.i:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f example/CMakeFiles/testserver.dir/build.make example/CMakeFiles/testserver.dir/testserver.cc.i
+.PHONY : testserver.cc.i
+
+testserver.s: testserver.cc.s
+.PHONY : testserver.s
+
+# target to generate assembly for a file
+testserver.cc.s:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f example/CMakeFiles/testserver.dir/build.make example/CMakeFiles/testserver.dir/testserver.cc.s
+.PHONY : testserver.cc.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -124,6 +162,10 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... testserver"
+	@echo "... testserver.o"
+	@echo "... testserver.i"
+	@echo "... testserver.s"
 .PHONY : help
 
 

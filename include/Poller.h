@@ -24,12 +24,15 @@ public:
     virtual ~Poller() = default; 
 
 
-    // 给所有IO复用保留同一接口    (纯虚函数)
+    /* 给所有IO复用保留同一接口   (纯虚函数，交给派生类实现的接口) */
 
-    // 核心IO复用接口  等待事件发生
+    // 核心IO复用接口  等待事件发生  对于Poller是poll，对于EPollerPoller是epoll_wait
+    // 最后返回epoll_wait/poll的返回时间
     virtual Timestamp poll(int timeoutMs, ChannelList *activeChannel) = 0; 
+
     // 添加或更新一个Channel的事件监听状态
-    virtual void updateChannel(Channel* channel) = 0;  
+    virtual void updateChannel(Channel* channel) = 0; 
+
     // 从poller中移除不再需要监听的channel                    
     virtual void removeChannel(Channel* Channel) = 0;                      
 

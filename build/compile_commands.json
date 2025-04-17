@@ -1,0 +1,62 @@
+[
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/Channel.cc.o -c /home/zhangyan/projects/muduo-learning/src/Channel.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/Channel.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/CurrentThread.cc.o -c /home/zhangyan/projects/muduo-learning/src/CurrentThread.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/CurrentThread.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/DefaultPoller.cc.o -c /home/zhangyan/projects/muduo-learning/src/DefaultPoller.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/DefaultPoller.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/EPollPoller.cc.o -c /home/zhangyan/projects/muduo-learning/src/EPollPoller.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/EPollPoller.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/EventLoop.cc.o -c /home/zhangyan/projects/muduo-learning/src/EventLoop.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/EventLoop.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/InetAddress.cc.o -c /home/zhangyan/projects/muduo-learning/src/InetAddress.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/InetAddress.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/Logger.cc.o -c /home/zhangyan/projects/muduo-learning/src/Logger.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/Logger.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/Poller.cc.o -c /home/zhangyan/projects/muduo-learning/src/Poller.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/Poller.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/TcpServer.cc.o -c /home/zhangyan/projects/muduo-learning/src/TcpServer.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/TcpServer.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/Thread.cc.o -c /home/zhangyan/projects/muduo-learning/src/Thread.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/Thread.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/Timestamp.cc.o -c /home/zhangyan/projects/muduo-learning/src/Timestamp.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/Timestamp.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/example",
+  "command": "/usr/bin/g++  -I/home/zhangyan/projects/muduo-learning/include -g -std=c++11 -Wall -std=gnu++11 -o CMakeFiles/testserver.dir/testserver.cc.o -c /home/zhangyan/projects/muduo-learning/example/testserver.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/example/testserver.cc"
+}
+]

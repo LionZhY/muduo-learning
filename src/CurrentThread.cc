@@ -12,7 +12,7 @@
 namespace CurrentThread
 {
     // t_cacheTid  初始值0
-    __thread int t_cacheTid = 0;
+    __thread int t_cachedTid = 0;
  
 
     // 实现cacheTid()  获取当前线程的真是线程ID（tid），并缓存到线程局部变量t_cachedTid中

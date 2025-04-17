@@ -19,9 +19,9 @@ EPollPoller::EPollPoller(EventLoop* loop)
     , epollfd_(::epoll_create1(EPOLL_CLOEXEC))  // epoll_create1() 创建 epoll 实例，返回epoll的fd
     , events_(kInitEventListSize)               // 初始化events_容器大小 vector<epoll_events>(16)
 {
-    if (epollfd_ < 0) // 若创建失败(返回值为-1)
+    if (epollfd_ < 0) // // 检查 epoll_create1 否返回负值（创建失败，返回-1）
     {
-        LOG_FATAL("epoll_create error:%d \n", errno); // 打印错误日志并终止程序
+        LOG_FATAL("epoll_create error:%d \n", errno); // 打印致命错误日志(并Logger内部调用exit终止程序)
     }
 }
 
@@ -83,30 +83,39 @@ Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
 }
 
 
-// 添加或更新一个Channel的事件监听状态
-// channel update remove => EventLoop updateChannel removeChannel => Poller updateChannel removeChannel
+
+/**
+ * Channel::update => EventLoop::updateChannel => Poller::updateChannel
+ * Channel::remove => EventLoop::removeChannel => Poller::removeChannel
+ */
+
+// 添加或更新一个Channel的事件监听状态（在channel中调用）
 void EPollPoller::updateChannel(Channel* channel)
 {
     const int index = channel->index(); // 获取当前channel的状态
-    LOG_INFO("func=%s => fd=%d events=%d index=%d\n", __FUNCTION__, channel->fd(), channel->events(), index);
+    LOG_INFO("func=%s => fd=%d events=%d index=%d \n", __FUNCTION__, channel->fd(), channel->events(), index);
 
-    if (index == kNew || index == kDeleted) // kNew未添加，kDeleted已删除 的情况
+    // kNew未添加，kDeleted已删除状态 都有可能会被再次添加到epoll中
+    if (index == kNew || index == kDeleted) 
     {
-        if (index == kNew) // 未添加
+        // 未添加
+        if (index == kNew) 
         {
             int fd = channel->fd();  // 获取fd
-            channels_[fd] = channel; // 添加到fd->channel的映射表中 <fd, fd所属的channel类型>
+            channels_[fd] = channel; // 添加到channelmap中 <fd, fd所属的channel类型>
         }
-        else // 已删除 无需重新添加映射表
+        // 已删除 无需重新添加映射表
+        else 
         {
         }
-        channel->set_index(kAdded); // 设置为已添加状态
+        channel->set_index(kAdded);     // 设置为已添加状态
         update(EPOLL_CTL_ADD, channel); // 调用epoll_ctl添加到epoll中
     }
-    else // kAdded 已添加
+    // kAdded 已添加
+    else 
     {
         int fd = channel->fd();
-        if (channel->isNoneEvent()) // 若channel不再关注任何事件
+        if (channel->isNoneEvent()) // 若channel不再关注任何事件，不需要Poller监听任何事件了
         {
             update(EPOLL_CTL_DEL, channel); // 从epoll中删除
             channel->set_index(kDeleted);   // 状态设置为已删除
@@ -120,7 +129,7 @@ void EPollPoller::updateChannel(Channel* channel)
 }
 
 
-// 从poller中移除不再需要监听的channel
+// 从poller中移除不再需要监听的channel （在channel中调用）
 void EPollPoller::removeChannel(Channel* channel)
 {
     int fd = channel->fd();
