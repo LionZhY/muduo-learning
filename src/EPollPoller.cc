@@ -41,16 +41,21 @@ EPollPoller::~EPollPoller()
 // 封装epoll_wait  等待事件发生
 Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
 {
-    // 由于频繁调用poll 实际上应该用LOG_DEBUG输出日志更为合理，当遇到并发场景，关闭DEBUG日志提升效率
+    // timeoutMs：超时时间（毫秒），传给 epoll_wait
+    // activeChannels：用于输出发生事件的 Channel 指针列表
     
-    LOG_INFO("func=%s => fd total count:%lu\n", __FUNCTION__, channels_.size()); // 打印当前注册的 fd 数量
+    // 打印日志：当前注册在epoll中的channel总数量 （实际部署建议使用 LOG_DEBUG 或关闭）
+    LOG_INFO("func=%s => fd total count:%lu\n", __FUNCTION__, channels_.size());
     
-    int numEvents = ::epoll_wait( // epoll_wait：阻塞直到有事件或超时
+    // 调用 epoll_wait 等待事件
+    // 返回值：numEvents 表示发生事件的数量 (0 表示超时，-1 表示错误)
+    int numEvents = ::epoll_wait( 
         epollfd_,                           // epoll实例fd
-        &*events_.begin(),                  // 返回的事件数组地址
+        &*events_.begin(),                  // 返回 epoll_event 容器首地址
         static_cast<int>(events_.size()),   // 最大监听数量
-        timeoutMs                           // 超时时间
+        timeoutMs                           // 最大等待时间（毫秒），-1 表示永久阻塞。
     );
+
 
     int saveErrno = errno; // 保存errno，防止被后续函数覆盖
       
