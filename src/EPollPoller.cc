@@ -173,10 +173,10 @@ void EPollPoller::fillActiveChannels(int numEvents, ChannelList* activeChannels)
 
 
 
-// 更新channel通道，封装epoll_ctl系统调用 (其实就是调用epoll_ctl add/mod/del)
+// 封装epoll_ctl , 更新channel通道 (其实就是调用epoll_ctl add/mod/del)
 void EPollPoller::update(int operation, Channel* channel)
 {
-    epoll_event event;
+    epoll_event event; // 创建一个 epoll_event 结构体对象，用于传递给 epoll_ctl()
     ::memset(&event, 0, sizeof(event)); // 清空结构体，防止脏数据
 
     int fd = channel->fd();
@@ -185,16 +185,16 @@ void EPollPoller::update(int operation, Channel* channel)
     event.data.fd  = fd;
     event.data.ptr = channel;           // 传入channel指针，用于回调
 
-    if (::epoll_ctl(epollfd_, operation, fd, &event) < 0) // 执行epoll_ctl操作
+    // 如果执行epoll_ctl(add/mod/del)，失败
+    if (::epoll_ctl(epollfd_, operation, fd, &event) < 0) 
     {
-        if (operation == EPOLL_CTL_DEL)
+        if (operation == EPOLL_CTL_DEL) // 如果del删除失败（非致命错误）
         {
-            LOG_ERROR("epoll_ctl del error:%d\n", errno); // 删除失败，打印错误
+            LOG_ERROR("epoll_ctl del error:%d\n", errno);       // 输出错误日志，不中断程序
         }
-        else 
+        else // 如果是add或mod失败（说明程序逻辑严重出错）
         {
-            LOG_FATAL("epoll_ctl add/mod error:%d\n", errno); // 添加or修改失败，终止程序
+            LOG_FATAL("epoll_ctl add/mod error:%d\n", errno);   // 输出错误日志，并终止程序
         }
     }
-
 }

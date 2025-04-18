@@ -41,12 +41,12 @@ private:
     void update(int operation, Channel* channel);
 
 
-    static const int kInitEventListSize = 16; // 初始化epoll事件列表(vector<epoll_event>)的容量为16
-
-    using EventList = std::vector<epoll_event>; // 容器类型别名  epoll事件列表
-
+    
     int epollfd_;       // 用于标识epoll实例   epoll_creat 创建返回的fd保存在epollfd_中
-    EventList events_;  // 存放epoll_wait得到的事件列表，初始容量为16
 
+    static const int kInitEventListSize = 16; // 初始化epoll事件列表events_(vector<epoll_event>)的容量为16
+    
+    using EventList = std::vector<epoll_event>; // 容器类型别名  epoll事件列表
+    EventList events_;  // 存放epoll_wait得到的事件列表，初始容量为16
 
 };
