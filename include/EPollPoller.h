@@ -34,10 +34,10 @@ public:
 
 private:
 
-    // 填写活跃的连接
+    // 填写活跃的连接channel到activeChannels
     void fillActiveChannels(int numEvents, ChannelList* activeChannels) const;
 
-    // 更新channel通道，其实就是调用epoll_ctl
+    // 更新channel，其实就是调用epoll_ctl
     void update(int operation, Channel* channel);
 
 

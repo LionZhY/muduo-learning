@@ -38,22 +38,24 @@ EPollPoller::~EPollPoller()
 **重写基类Poller的（纯虚函数）方法  poll()  updateChannel()  removeChannel()
 */
 
-// 封装epoll_wait  等待事件发生
+// 封装 epoll_wait  等待事件发生
 Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
 {
-    // timeoutMs：超时时间（毫秒），传给 epoll_wait
-    // activeChannels：用于输出发生事件的 Channel 指针列表
-    
+    /**
+     * timeoutMs：     超时时间（毫秒），传给 epoll_wait
+     * activeChannels：用于输出发生事件的 Channel 指针列表（fiiActiveChannels填充）
+     */
+
     // 打印日志：当前注册在epoll中的channel总数量 （实际部署建议使用 LOG_DEBUG 或关闭）
     LOG_INFO("func=%s => fd total count:%lu\n", __FUNCTION__, channels_.size());
     
-    // 调用 epoll_wait 等待事件
-    // 返回值：numEvents 表示发生事件的数量 (0 表示超时，-1 表示错误)
-    int numEvents = ::epoll_wait( 
-        epollfd_,                           // epoll实例fd
-        &*events_.begin(),                  // 返回 epoll_event 容器首地址
-        static_cast<int>(events_.size()),   // 最大监听数量
-        timeoutMs                           // 最大等待时间（毫秒），-1 表示永久阻塞。
+
+    // 调用 epoll_wait 
+    int numEvents = ::epoll_wait( // 返回值numEvents 表示发生事件的数量 (0 表示超时，-1 表示错误)
+        epollfd_,                         // epoll实例fd
+        &*events_.begin(),                // 传入vector<epoll_event> events_ 首地址，作为输出数组
+        static_cast<int>(events_.size()), // 当前监听的最大fd数量（events_的容量）
+        timeoutMs                         // 最大等待时间（毫秒），-1 表示永久阻塞。
     );
 
 
@@ -62,10 +64,11 @@ Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
     Timestamp now(Timestamp::now()); // 获取当前时间戳 表示poll返回时间
 
     
+    // 处理事件
     if (numEvents > 0) // 有事件发生
     {
-        LOG_INFO("%d events happend\n", numEvents); // 打印日志
-        fillActiveChannels(numEvents, activeChannels); // 填充活跃的channel到EventLoop
+        LOG_INFO("%d events happend\n", numEvents);     // 打印日志
+        fillActiveChannels(numEvents, activeChannels);  // 填充活跃的channel到EventLoop
         if (numEvents == events_.size()) // 若事件数组已满，扩容到2倍
         {
             events_.resize(events_.size() * 2);
@@ -75,9 +78,9 @@ Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
     {
         LOG_DEBUG("%s timeout!\n", __FUNCTION__);
     }
-    else // 出错
+    else // numEvents < 0 出错
     {
-        if (saveErrno != EINTR) // 若不是被信号中断
+        if (saveErrno != EINTR) // 检查错误码 若不是被信号中断
         {
             errno = saveErrno;
             LOG_ERROR("EPollPoller::poll() errot!"); // 打印错误日志
@@ -162,13 +165,13 @@ void EPollPoller::removeChannel(Channel* channel)
 // 将就绪事件对应的 Channel 填入 activeChannels
 void EPollPoller::fillActiveChannels(int numEvents, ChannelList* activeChannels) const
 {
-    for (int i = 0; i < numEvents; ++i) 
+    // for 循环处理所有就绪事件
+    for (int i = 0; i < numEvents; ++i) // numEvents表示epoll_wait()返回的就绪事件数
     {
         Channel* channel = static_cast<Channel*>(events_[i].data.ptr); // 获取epoll_event对应的channel指针
-        channel->set_revents(events_[i].events); // 设置实际触发的事件
-        activeChannels->push_back(channel); // EventLoop就拿到了它的Poller给它返回的所有发生事件的channel列表了
+        channel->set_revents(events_[i].events);  // 设置实际触发的事件
+        activeChannels->push_back(channel);       // 就绪的 Channel* 加入 activeChannels 列表中
     }
-
 }
 
 
