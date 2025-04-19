@@ -38,7 +38,7 @@ EPollPoller::~EPollPoller()
 **重写基类Poller的（纯虚函数）方法  poll()  updateChannel()  removeChannel()
 */
 
-// 封装 epoll_wait  等待事件发生
+// 封装 epoll_wait   填充events_, activeChannels 记录发生事件数量numEvents
 Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
 {
     /**
@@ -58,10 +58,11 @@ Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
         timeoutMs                         // 最大等待时间（毫秒），-1 表示永久阻塞。
     );
 
-
-    int saveErrno = errno; // 保存errno，防止被后续函数覆盖
-      
-    Timestamp now(Timestamp::now()); // 获取当前时间戳 表示poll返回时间
+    // 保存errno，防止被后续函数覆盖
+    int saveErrno = errno; 
+    
+    // 获取当前时间戳 标记本次 poll 的返回时间
+    Timestamp now(Timestamp::now()); 
 
     
     // 处理事件
@@ -142,15 +143,15 @@ void EPollPoller::updateChannel(Channel* channel)
 }
 
 
-// 从poller中移除不再需要监听的channel （在channel中调用）
+// 从poller中移除不再需要监听的channel （在Channel::remove()中调用）
 void EPollPoller::removeChannel(Channel* channel)
 {
-    int fd = channel->fd();
-    channels_.erase(fd); // 从 fd->Channel 映射表中删除
+    int fd = channel->fd(); // 获取channel对应的fd
+    channels_.erase(fd);    // 从 fd->Channel 映射表 <fd, Channel*> 中删除
 
     LOG_INFO("func=%s => fd=%d\n", __FUNCTION__, fd);
 
-    int index = channel->index();
+    int index = channel->index(); // 获取当前 channel 的状态
     if (index == kAdded) // 若在 epoll 中注册过
     {
         update(EPOLL_CTL_DEL, channel); // 从epoll中注销
@@ -188,8 +189,8 @@ void EPollPoller::update(int operation, Channel* channel)
     event.data.fd  = fd;
     event.data.ptr = channel;           // 传入channel指针，用于回调
 
-    // 如果执行epoll_ctl(add/mod/del)，失败
-    if (::epoll_ctl(epollfd_, operation, fd, &event) < 0) 
+    // 核心调用：执行 epoll_ctl()
+    if (::epoll_ctl(epollfd_, operation, fd, &event) < 0) // 如果执行失败
     {
         if (operation == EPOLL_CTL_DEL) // 如果del删除失败（非致命错误）
         {
