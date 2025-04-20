@@ -7,7 +7,7 @@
 #include <mutex>  // 互斥锁，用于保护临界资源
 
 #include "noncopyable.h"
-#include "Timestamp.h"
+#include "Timestamp.h"                                       
 #include "CurrentThread.h"
 
 class Channel;
@@ -23,7 +23,7 @@ class Poller;
 class EventLoop : noncopyable
 {
 public:
-    using Functor = std::function<void()>; // 回调别名
+    using Functor = std::function<void()>; // 回调类型别名
 
     // 构造和析构
     EventLoop();
@@ -42,7 +42,6 @@ public:
     void runInLoop(Functor cb);
     // 把上层注册的回调函数cb放入队列中，唤醒loop所在的线程执行cb
     void queueInLoop(Functor cb);
-
 
     // 通过eventfd唤醒loop所在的线程
     void wakeup();
