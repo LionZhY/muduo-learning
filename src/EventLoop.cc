@@ -1,6 +1,6 @@
-#include <sys/eventfd.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include <sys/eventfd.h> // 提供eventfd()系统调用，用于用户态线程/进程间事件通知
+#include <unistd.h>      // 提供POSIX API 如close()
+#include <fcntl.h>       // 提供文件描述符控制，如EFD_NONBLOCK等常量
 #include <errno.h>
 #include <memory>
 
@@ -9,23 +9,19 @@
 #include "Channel.h"
 #include "Poller.h"
 
-// 防止一个线程创建多个EventLoop
-__thread EventLoop* t_loopInThisThread = nullptr;
+// 每个线程都有独立的 t_loopInThisThread 指针  保证每个线程只拥有一个 EventLoop
+__thread EventLoop* t_loopInThisThread = nullptr; 
 
 // 定义默认的Poller IO复用接口的超时时间
-const int kPollTimeMs = 10000; // 10000毫秒 = 10秒
+const int kPollTimeMs = 10000; // 10000毫秒 = 10秒 用于 poll() / epoll_wait() 等函数中的超时参数
 
-/**
- * 创建线程之后，主线程和子线程谁先运行是不确定的
- * 通过一个eventfd在线程之间传递数据的好处是：多个线程无需上锁就可以实现同步
- * eventfd支持的最低内核版本是Linux2.6.27 ，在2.6.27及之前的版本也可以用eventfd，但是flags必须设置为0
- */
 
-// 创建wakeupfd 用来notify唤醒subReactor处理新来的Channel
+
+// 创建eventfd 用于线程间事件唤醒
 int createEventfd()
 {
-   int evtfd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-   if (evtfd < 0)
+   int evtfd = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC); // 该fd被主线程或其他线程写入，用于唤醒当前线程中的 EventLoop
+   if (evtfd < 0) // 创建失败
    {
        LOG_FATAL("eventfd error:%d\n", errno);
    }
@@ -38,25 +34,28 @@ EventLoop::EventLoop()
     : looping_(false)
     , quit_(false)
     , callingPendingFunctors_(false)
-    , threadId_(CurrentThread::tid())
-    , poller_(Poller::newDefaultPoller(this))
-    , wakeupFd_(createEventfd())
-    , wakeupChannel_(new Channel(this, wakeupFd_))
+    , threadId_(CurrentThread::tid())           // 记录当前线程ID（仅允许本线程使用）
+    , poller_(Poller::newDefaultPoller(this))   // 创建poller对象
+    , wakeupFd_(createEventfd())                // 创建eventfd，用于跨线程唤醒当前EventLoop
+    , wakeupChannel_(new Channel(this, wakeupFd_)) // 创建Channel，监听wakeFd_的读事件
 {
+    // 打印调试信息：当前EventLoop对象地址及其所在线程ID
     LOG_DEBUG("EventLoop created %p in thread %d\n", this, threadId_);
+    
+    // 如果当前线程已经绑定一个 EventLoop，打印错误并终止
     if (t_loopInThisThread)
     {
         LOG_FATAL("Another EventLoop %p exists in this thread %d\n", t_loopInThisThread, threadId_);
     }
-    else 
+    else // 否则将当前对象赋值给 t_loopInThisThread，标记当前线程已绑定该 EventLoop。
     {
         t_loopInThisThread = this;
     }
 
-    // 设置wakeupfd的事件类型及发生事件后的回调操作
+    // 设置wakeupChannel的读事件回调函数为 handleRead()，确保收到唤醒通知时能正确处理
     wakeupChannel_->setReadCallback(std::bind(&EventLoop::handleRead, this));
     
-    // 每一个EventLoop都将监听wakeupChannel_的EPOLL读事件了
+    // 启用 wakeupChannel_ 的读事件监听
     wakeupChannel_->enableReading();
 }
 
@@ -124,7 +123,7 @@ void EventLoop::quit()
 }
 
 
-// 在当前loop中执行cb
+// 若是当前loop线程，立即执行cb
 void EventLoop::runInLoop(Functor cb)
 {
     if (isInLoopThread()) // 当前EventLoop线程中执行回调
@@ -133,7 +132,7 @@ void EventLoop::runInLoop(Functor cb)
     }
     else // 在非当前EventLoop线程中执行cb 就要唤醒EventLoop所在线程执行cb
     {
-        queueInLoop(cb);
+        queueInLoop(cb); // 加入待执行回调队列
     }
 }
 
@@ -162,7 +161,7 @@ void EventLoop::queueInLoop(Functor cb)
 void EventLoop::handleRead()
 {
     uint64_t one = 1;
-    ssize_t n = read(wakeupFd_, &one, sizeof(one));
+    ssize_t n = read(wakeupFd_, &one, sizeof(one)); // 读出 eventfd 数据，防止 epoll 重复触发
     if (n != sizeof(one))
     {
         LOG_ERROR("EventLoop::handleRead() reads %lu bytes instead of 8\n", n);
@@ -198,7 +197,7 @@ bool EventLoop::hasChannel(Channel* channel)
 
 
 
-// 执行上层回调
+// 执行上层回调  执行所有延迟提交的任务回调
 void EventLoop::doPendingFunctors()
 {
     std::vector<Functor> functors;
