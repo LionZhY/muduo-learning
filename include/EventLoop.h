@@ -51,7 +51,7 @@ public:
     void removeChannel(Channel* channel);
     bool hasChannel(Channel* channel);
 
-    // 判断EventLoop对象是否在自己的线程里
+    // 判断EventLoop对象是否在自己的线程里创建的
     // threadId_为EventLoop创建时的线程id CurrentThread::tid()为当前线程id
     bool isInLoopThread() const { return threadId_ == CurrentThread::tid(); }
 
@@ -66,7 +66,7 @@ private:
 
     using ChannelList = std::vector<Channel*>; // 当前活动的事件channel集合
 
-    std::atomic_bool looping_;      // 原子操作 底层通过CAS实现
+    std::atomic_bool looping_;      // 事件循环是否正在进行 原子操作 底层通过CAS实现
     std::atomic_bool quit_;         // 标识退出loop循环
 
     const pid_t threadId_;          // 记录当前EventLoop是被哪个线程id创建的（标识当前EventLoop的所属线程id）
@@ -80,7 +80,7 @@ private:
     ChannelList activeChannels_; // 当前活跃的Channel集合
 
     std::atomic_bool callingPendingFunctors_; // 标识当前loop是否有需要执行的回调操作
-    std::vector<Functor> pendingFunctors_;    // 存储loop需要执行的所有回调操作
+    std::vector<Functor> pendingFunctors_;    // 存储loop待执行回调的队列
     
     std::mutex mutex_; // 互斥锁 用来保护上面vector容器的线程安全操作
 

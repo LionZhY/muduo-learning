@@ -61,42 +61,53 @@ EventLoop::EventLoop()
 
 EventLoop::~EventLoop()
 {
-    wakeupChannel_->disableAll(); // 给Channel移除所有感兴趣的事件
+    wakeupChannel_->disableAll(); // Channel取消监听所有事件
     wakeupChannel_->remove();     // 把Channel从EventLoop上删除掉
-    ::close(wakeupFd_);
-    t_loopInThisThread = nullptr;
+    ::close(wakeupFd_);           // 关闭eventfd
+    t_loopInThisThread = nullptr; // 清空本线程的t_loopInThisThread指针
 }
 
 
 // 开启事件循环
 void EventLoop::loop()
 {
-    looping_ = true;
-    quit_ = false;
+    looping_ = true; // 标记EventLoop正在运行主循环
+    quit_ = false;   // 清除退出标志，以防该EventLoop被重复使用
 
+    // 打印日志：该EventLoop正在事件循环中
     LOG_INFO("EventLoop %p start looping\n", this);
 
+    // 循环执行 直到外部设置quit_ = true
     while (!quit_)
     {
-        activeChannels_.clear();
-        pollReturnTime_ = poller_->poll(kPollTimeMs, &activeChannels_);
-        for (Channel* channel : activeChannels_)
+        activeChannels_.clear(); // 清除上次poll()得到的活跃Channel
+        
+        // 等待事件
+        pollReturnTime_ = poller_->poll(kPollTimeMs, &activeChannels_); // 调用poll(即epoll_wait)填充activeChannels_
+
+        // 分发事件
+        for (Channel* channel : activeChannels_) // 遍历所有活跃的Channel，调用其handleEvent()进行事件处理
         {
-            // Poller监听哪些channel发生了事件 然后上报给EventLoop 通知channel处理相应的事件
-            channel->handleEvent(pollReturnTime_);
+            // 处理事件
+            channel->handleEvent(pollReturnTime_); 
         }
+
         /**
          * 执行当前EventLoop事件循环需要处理的回调操作
          * 对于线程数 >= 2的情况  IO线程mainloop(mainReactor)主要工作：
-         * accept接受链接=>将返回的accept返回的connfd打包为Channel => TcpServer::newConnection通过轮询将TcpConnection对象分配给subLoop处理
+         * accept接受链接=>将accept返回的connfd打包为Channel => TcpServer::newConnection通过轮询将TcpConnection对象分配给subLoop处理
          * 
          * mainloop调用queueInLoop将回调加入subloop
          * 该回调需要subloop执行 但subloop还在poller_->poll处阻塞  queueInLoop通过wakeup将subloop唤醒
          */
 
-         doPendingFunctors();
+        // 执行延迟提交的任务回调（queueInLoop() 或 runInLoop() 添加到 EventLoop 的回调函数）
+        doPendingFunctors(); 
     }
+
+    // quit_ = true 循环结束，打印结束日志
     LOG_INFO("EventLoop %p stop looping.\n", this);
+    // 重置状态位，允许之后再次进入循环
     looping_ = false;
 }
 
@@ -115,24 +126,26 @@ void EventLoop::loop()
 // 退出事件循环
 void EventLoop::quit()
 {
-    quit_ = true;
+    quit_ = true; // 在 EventLoop::loop() 的循环条件中被检查
+
+    // 判断当前线程是否是这个EventLoop所属的线程
     if (!isInLoopThread())
     {
-        wakeup();
+        wakeup(); // 如果不是，即其他线程在调用quit(),当前EventLoop可能在阻塞，需要唤醒poll
     }
 }
 
 
-// 若是当前loop线程，立即执行cb
+// 若是当前loop线程创建的EventLoop，立即执行cb
 void EventLoop::runInLoop(Functor cb)
 {
-    if (isInLoopThread()) // 当前EventLoop线程中执行回调
+    if (isInLoopThread()) // 如果当前线程是否是这个EventLoop所属的线程，直接执行回调cb()
     {
         cb();
     }
-    else // 在非当前EventLoop线程中执行cb 就要唤醒EventLoop所在线程执行cb
+    else // 非EventLoop所属线程调用的，就要唤醒EventLoop所在线程执行cb
     {
-        queueInLoop(cb); // 加入待执行回调队列
+        queueInLoop(cb); // 加入待执行回调队列pendingFunctors_
     }
 }
 
@@ -141,13 +154,15 @@ void EventLoop::runInLoop(Functor cb)
 void EventLoop::queueInLoop(Functor cb)
 {
     {
-        std::unique_lock<std::mutex> lock(mutex_);
-        pendingFunctors_.emplace_back(cb);
+        std::unique_lock<std::mutex> lock(mutex_); // 加锁保护pendingFucntors_
+        pendingFunctors_.emplace_back(cb); // 将传入的回调函数加入到 pendingFunctors_ 尾部
     }
     /**
-    * || callingPendingFunctors的意思是 当前loop正在执行回调中 但是loop的pendingFunctors_中又加入了新的回调 需要通过wakeup写事件
-    * 唤醒相应的需要执行上面回调操作的loop的线程 让loop()下一次poller_->poll()不再阻塞（阻塞的话会延迟前一次新加入的回调的执行），然后
-    * 继续执行pendingFunctors_中的回调函数
+    * || callingPendingFunctors的意思是 
+    * 当前loop正在执行回调中 但是loop的pendingFunctors_中又加入了新的回调 
+    * 需要通过wakeup写事件 唤醒相应的需要执行上面回调操作的loop的线程 
+    * 让loop()下一次poller_->poll()不再阻塞（阻塞的话会延迟前一次新加入的回调的执行），
+    * 然后继续执行pendingFunctors_中的回调函数
     **/
 
     if(!isInLoopThread() || callingPendingFunctors_)

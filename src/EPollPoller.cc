@@ -38,7 +38,7 @@ EPollPoller::~EPollPoller()
 **重写基类Poller的（纯虚函数）方法  poll()  updateChannel()  removeChannel()
 */
 
-// 封装 epoll_wait   填充events_, activeChannels 记录发生事件数量numEvents
+// 封装 epoll_wait   填充events_ activeChannels 记录发生事件数量numEvents
 Timestamp EPollPoller::poll(int timeoutMs, ChannelList* activeChannels)
 {
     /**
