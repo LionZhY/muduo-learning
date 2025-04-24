@@ -82,8 +82,8 @@ void EventLoop::loop()
     {
         activeChannels_.clear(); // 清除上次poll()得到的活跃Channel
         
-        // 等待事件
-        pollReturnTime_ = poller_->poll(kPollTimeMs, &activeChannels_); // 调用poll(即epoll_wait)填充activeChannels_
+        // 等待事件（poll() - epoll_wait()）
+        pollReturnTime_ = poller_->poll(kPollTimeMs, &activeChannels_); // 阻塞在这里，如果没有事件发生，就一直wait
 
         // 分发事件
         for (Channel* channel : activeChannels_) // 遍历所有活跃的Channel，调用其handleEvent()进行事件处理
@@ -155,6 +155,7 @@ void EventLoop::queueInLoop(Functor cb)
 {
     {
         std::unique_lock<std::mutex> lock(mutex_); // 加锁保护pendingFucntors_
+
         pendingFunctors_.emplace_back(cb); // 将传入的回调函数加入到 pendingFunctors_ 尾部
     }
     /**
@@ -172,26 +173,30 @@ void EventLoop::queueInLoop(Functor cb)
 }
 
 
-// 给eventfd返回的文件描述符wakeupFd_绑定的事件回调 
-void EventLoop::handleRead()
+// 通过eventfd唤醒loop所在的线程  向wakeupFd_写一个数据 wakeupChannel就发生读事件 当前loop线程就会被唤醒
+void EventLoop::wakeup()
 {
-    uint64_t one = 1;
-    ssize_t n = read(wakeupFd_, &one, sizeof(one)); // 读出 eventfd 数据，防止 epoll 重复触发
+    uint64_t one = 1; // 
+    ssize_t n = write(wakeupFd_, &one, sizeof(one)); // 向 wakeupFd_ 对应的 eventfd 写入一个值，内部计数值+1，触发epoll_wait返回
+
+    // 检查实际写入的字节数是否是8字节
     if (n != sizeof(one))
     {
-        LOG_ERROR("EventLoop::handleRead() reads %lu bytes instead of 8\n", n);
+        LOG_ERROR("EventLoop::wakeup() writes %lu bytes instead of 8\n", n);
     }
 }
 
 
-// 通过eventfd唤醒loop所在的线程  向wakeupFd_写一个数据 wakeupChannel就发生读事件 当前loop线程就会被唤醒
-void EventLoop::wakeup()
+// wakeupFd_对应Channel的读事件回调函数
+void EventLoop::handleRead()
 {
-    uint64_t one = 1;
-    ssize_t n = write(wakeupFd_, &one, sizeof(one));
+    uint64_t one = 1; // 定义一个 64 位无符号整数变量，作为 read 的目标缓冲区。
+    ssize_t n = read(wakeupFd_, &one, sizeof(one)); // 读出 eventfd 数据，防止 epoll 重复触发
+
+    // 检查读取的字节数是否为8字节
     if (n != sizeof(one))
     {
-        LOG_ERROR("EventLoop::wakeup() writes %lu bytes instead of 8\n", n);
+        LOG_ERROR("EventLoop::handleRead() reads %lu bytes instead of 8\n", n);
     }
 }
 
@@ -212,23 +217,24 @@ bool EventLoop::hasChannel(Channel* channel)
 
 
 
-// 执行上层回调  执行所有延迟提交的任务回调
+// 执行所有延迟提交的任务回调 pendingFunctors_
 void EventLoop::doPendingFunctors()
 {
-    std::vector<Functor> functors;
-    callingPendingFunctors_ = true;
+    std::vector<Functor> functors;  // 临时存放所有待执行的任务
+    callingPendingFunctors_ = true; // 标记有等待执行的回调操作
 
+    // 加锁，避免其他线程同时向pendingFunctors_添加任务
     {
         std::unique_lock<std::mutex> lock(mutex_);
         functors.swap(pendingFunctors_); // 交换的方式减少了锁的临界区范围 提升效率 同时避免了死锁 
                                          // 如果执行functor()在临界区内 且functor()中调用queueInLoop()就会产生死锁
     }
 
+    // 依次执行回调任务
     for (const Functor &functor : functors)
     {
         functor(); // 执行当前loop需要执行的回调操作
     }
 
-    callingPendingFunctors_ = false;
-
+    callingPendingFunctors_ = false; // 状态重置
 }
