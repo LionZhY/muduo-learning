@@ -20,7 +20,7 @@ public:
     ~Thread();
 
     // 线程控制
-    void start(); // 启动线程
+    void start(); // 创建线程
     void join();  // 阻塞当前线程
 
 
@@ -31,7 +31,7 @@ public:
     pid_t tid() const   { return tid_; }     
 
     // name() 返回线程名称
-    const std::string &name() const { return name_; }    
+    const std::string& name() const { return name_; }    
 
     // numCreated() 获取当前已创建的线程总数
     static int numCreated() {return numCreated_;}

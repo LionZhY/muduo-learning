@@ -8,11 +8,11 @@ std::atomic_int Thread::numCreated_(0); // 记录线程数，初始化为0（sta
 
 
 // 构造
-Thread::Thread(ThreadFunc func, const std::string &name)
+Thread::Thread(ThreadFunc func, const std::string &name) // 接收线程回调函数func，和线程名称name
     : started_(false)           // 初始状态：线程未启动
     , joined_(false)            // 初始状态：线程未join
     , tid_(0)                   // 初始tid = 0，等待start()后获取
-    , func_(std::move(func))    // 线程执行的函数（将）
+    , func_(std::move(func))    // 线程执行的函数（move转移资源所有权）
     , name_(name)               // 线程名称
 {
     setDefaultName(); // 如果name为空，就设置默认名称

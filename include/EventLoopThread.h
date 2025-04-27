@@ -16,8 +16,8 @@ public:
     using ThreadInitCallback = std::function<void(EventLoop*)>; // 类型别名 以EventLoop*为参数，无返回值的可调用对象
 
     // 构造和析构
-    EventLoopThread(const ThreadInitCallback &cb = ThreadInitCallback(), // 接收一个初始化回调和线程名称，均有默认值
-                    const std::string &name = std::string());
+    EventLoopThread(const ThreadInitCallback &cb = ThreadInitCallback(), // 初始化回调，默认为空回调
+                    const std::string &name = std::string()); // 线程名称，默认为空字符串
     
     ~EventLoopThread();
 

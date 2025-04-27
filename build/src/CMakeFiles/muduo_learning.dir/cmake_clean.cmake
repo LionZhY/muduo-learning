@@ -11,6 +11,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/muduo_learning.dir/EPollPoller.cc.o.d"
   "CMakeFiles/muduo_learning.dir/EventLoop.cc.o"
   "CMakeFiles/muduo_learning.dir/EventLoop.cc.o.d"
+  "CMakeFiles/muduo_learning.dir/EventLoopThread.cc.o"
+  "CMakeFiles/muduo_learning.dir/EventLoopThread.cc.o.d"
   "CMakeFiles/muduo_learning.dir/InetAddress.cc.o"
   "CMakeFiles/muduo_learning.dir/InetAddress.cc.o.d"
   "CMakeFiles/muduo_learning.dir/Logger.cc.o"
