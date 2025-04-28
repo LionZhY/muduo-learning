@@ -15,13 +15,13 @@ public:
     using ThreadInitCallback = std::function<void(EventLoop*)>;
 
     // 构造和析构
-    EventLoopThreadPool(EventLoop* baseLoop, const std::string &nameArg);
+    EventLoopThreadPool(EventLoop* baseLoop, const std::string &nameArg); // 传入主线程baseLoop, 线程池名称
     ~EventLoopThreadPool();
 
     // 设置线程池中EventLoopThread的数量
     void setThreadNum(int numThreads) { numThreads_ = numThreads; }
 
-    // 启动所有子线程
+    // 启动线程池
     void start(const ThreadInitCallback& cb = ThreadInitCallback());
 
     // 采用轮询策略返回一个 EventLoop*

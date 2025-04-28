@@ -31,6 +31,11 @@
 },
 {
   "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/EventLoopThreadPool.cc.o -c /home/zhangyan/projects/muduo-learning/src/EventLoopThreadPool.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/EventLoopThreadPool.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
   "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/InetAddress.cc.o -c /home/zhangyan/projects/muduo-learning/src/InetAddress.cc",
   "file": "/home/zhangyan/projects/muduo-learning/src/InetAddress.cc"
 },
