@@ -45,7 +45,7 @@ EventLoop* EventLoopThread::startLoop()
 }
 
 
-// 线程函数 是在单独的新线程里运行的 负责创建EventLoop对象并进入事件循环
+// 线程函数 新线程创建EventLoop对象，并进入循环 (在thread_.start()在新创建的子线程中执行)
 void EventLoopThread::threadFunc()
 {
     EventLoop loop; // 创建一个独立的EventLoop对象，和上面的线程是一一对应的 one loop per thread
@@ -56,14 +56,16 @@ void EventLoopThread::threadFunc()
         callback_(&loop);
     }
 
+    // 加锁保护loop_
     {
         std::unique_lock<std::mutex> lock(mutex_);
-        loop_ = &loop; // 将局部EventLoop对象的地址赋值给成员遍历loop_
-        cond_.notify_one(); // 唤醒主线程 通知EventLoop已创建完成
+        loop_ = &loop; // 将局部EventLoop对象的地址赋值给成员变量loop_
+        cond_.notify_one(); // 唤醒在startLoop()中cond_.wait()正在等待的主线程 通知EventLoop已创建完成
     }
 
-    loop.loop(); // 执行EventLoop的loop() 开启了底层的Poller的poll()
+    loop.loop(); // 执行EventLoop的loop() 开启了子线程的事件循环
     
-    std::unique_lock<std::mutex> lock(mutex_); // 事件循环退出后，加锁准备清理
+    // 事件循环退出后，EventLoop不再使用，加锁准备清理loop_（防止主线程可能正在访问loop_）
+    std::unique_lock<std::mutex> lock(mutex_); 
     loop_ = nullptr; // 将loop_指针清空，防止悬挂指针
 }
