@@ -6,8 +6,8 @@
 
 
 
-// 构造和析构
-EventLoopThreadPool::EventLoopThreadPool(EventLoop* baseLoop, const std::string &nameArg)
+// 构造  传入主线程baseLoop, 线程池名称
+EventLoopThreadPool::EventLoopThreadPool(EventLoop* baseLoop, const std::string &nameArg) 
     : baseLoop_(baseLoop)   // 主线程 EventLoop 指针
     , name_(nameArg)        // 线程池名称
     , started_(false)       // 线程池启动标志
@@ -17,6 +17,7 @@ EventLoopThreadPool::EventLoopThreadPool(EventLoop* baseLoop, const std::string 
 
 }
 
+// 析构
 EventLoopThreadPool::~EventLoopThreadPool()
 {
     // Don't delete loop, it's stack variable
@@ -71,11 +72,11 @@ EventLoop* EventLoopThreadPool::getNextLoop() // 如果工作在多线程中，b
         loop = loops_[next_]; // 使用当前next_索引选取EventLoop
         ++next_;              // next_自增，指向下一个
 
-        // 轮询调度使得每个 EventLoop 负载尽可能均匀，不会让单个 EventLoop 过载
-        if (next_ >= loops_.size())
+        if (next_ >= loops_.size()) // 如果到达末尾，回到 0，形成轮询调度
         {
             next_ = 0;
         }
+        // 轮询调度使得每个 EventLoop 负载尽可能均匀，不会让单个 EventLoop 过载
     }
 
     return loop; // 返回选中的EventLoop*

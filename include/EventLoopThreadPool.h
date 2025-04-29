@@ -39,11 +39,11 @@ public:
 
 private:
     EventLoop* baseLoop_; // 指向主线程的EventLoop，在只有一个线程时直接用这个处理所有IO
-    std::string name_;   // 线程池名称，通常由用户指定，线程池中EventLoopThread名称依赖于线程池名称
-
-    bool started_;   // 线程池是否已经启动
-    int numThreads_; // 线程池中线程的数量
-    int next_;       // 轮询索引，新链接到来，所选择的EventLoop的索引
+    
+    std::string name_;  // 线程池名称，通常由用户指定，线程池中EventLoopThread名称依赖于线程池名称
+    bool started_;      // 线程池是否已经启动
+    int numThreads_;    // 线程池中线程的数量
+    int next_;          // 轮询索引，新链接到来，所选择的EventLoop的索引
 
     std::vector<std::unique_ptr<EventLoopThread>> threads_; // IO线程列表 保存所有 EventLoopThread 对象
     std::vector<EventLoop*> loops_; // 线程池中EventLoop的列表，指向的是EventLoopThread线程函数创建的EventLoop对象
