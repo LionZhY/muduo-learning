@@ -51,6 +51,11 @@
 },
 {
   "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/Socket.cc.o -c /home/zhangyan/projects/muduo-learning/src/Socket.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/Socket.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
   "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/TcpServer.cc.o -c /home/zhangyan/projects/muduo-learning/src/TcpServer.cc",
   "file": "/home/zhangyan/projects/muduo-learning/src/TcpServer.cc"
 },

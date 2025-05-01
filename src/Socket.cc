@@ -1,8 +1,8 @@
-#include <unistd.h>
-#include <sys/types.h>
+#include <unistd.h>         // close()
+#include <sys/types.h>      // 基本系统数据类型
 #include <sys/socket.h>
 #include <string.h>
-#include <netinet/tcp.h>
+#include <netinet/tcp.h>    // TCP_NODELAY选项
 
 #include "Socket.h"
 #include "Logger.h"
@@ -12,23 +12,24 @@
 // 析构
 Socket::~Socket()
 {
-    ::close(sockfd_);
+    ::close(sockfd_); // 关闭 socket fd
 }
 
 
-// 绑定本地地址，将socket绑定到localaddr指定的ip和端口
+// 将socket fd绑定到指定的本地地址（IP+端口）
 void Socket::bindAddress(const InetAddress &localaddr)
 {
+    // 将 socket fd 绑定到一个本地地址localaddr，如果绑定失败，打印日志并终止程序
     if (0 != ::bind(sockfd_, (sockaddr*)localaddr.getSockAddr(), sizeof(sockaddr_in)))
     {
         LOG_FATAL("bind sockfd:%d fail\n", sockfd_);
     }
 }
 
-// 开启监听
+// 开启监听，准备接收客户端连接
 void Socket::listen()
 {
-    if (0 != ::listen(sockfd_, 1024))
+    if (0 != ::listen(sockfd_, 1024)) // sockfd_必须是已绑定过的，1024是监听队列的最大长度
     {
         LOG_FATAL("listen sockfd:%d fail\n", sockfd_);
     }
@@ -44,15 +45,19 @@ int Socket::accept(InetAddress* peeraddr) // 参数peeraddr 用于存储客户�
      * Reactor模型 one loop per thread
      * poller + non-blocking IO
      */
-    sockaddr_in addr;
-    socklen_t len = sizeof(addr);
-    ::memset(&addr, 0, sizeof(addr));
+    sockaddr_in addr;                   // 临时变量 addr，用于存储客户端地址
+    socklen_t len = sizeof(addr);       // 地址长度，传入 accept4() 时需要指针
+    ::memset(&addr, 0, sizeof(addr));   // 清空，避免未初始化字段导致意外
+
     // fixed : int connfd = ::accept(sockfd_, (sockaddr*)&addr, &len);
-    int connfd = ::accept(sockfd_, (sockaddr*)&addr, &len, SOCK_NONBLOCK | SOCK_CLOEXEC);
+    int connfd = ::accept4(sockfd_, (sockaddr*)&addr, &len, SOCK_NONBLOCK | SOCK_CLOEXEC);
+
+    // 如果 connfd 有效（连接成功）
     if (connfd >= 0)
     {
-        peeraddr->setSockAddr(addr);
+        peeraddr->setSockAddr(addr); // 保存客户端地址信息到调用者传入的 peeraddr 
     }
+    
     return connfd;
 }
 
@@ -60,7 +65,7 @@ int Socket::accept(InetAddress* peeraddr) // 参数peeraddr 用于存储客户�
 // 关闭写端
 void Socket::shutdownWrite()
 {
-    if (::shutdown(sockfd_, SHUT_WR) < 0)
+    if (::shutdown(sockfd_, SHUT_WR) < 0) // 调用 Linux 的 shutdown() 系统调用
     {
         LOG_ERROR("shutdownWrite error");
     }

@@ -209,10 +209,24 @@ src/CMakeFiles/muduo_learning.dir/Poller.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/muduo_learning.dir/Poller.cc.s"
 	cd /home/zhangyan/projects/muduo-learning/build/src && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/zhangyan/projects/muduo-learning/src/Poller.cc -o CMakeFiles/muduo_learning.dir/Poller.cc.s
 
+src/CMakeFiles/muduo_learning.dir/Socket.cc.o: src/CMakeFiles/muduo_learning.dir/flags.make
+src/CMakeFiles/muduo_learning.dir/Socket.cc.o: ../src/Socket.cc
+src/CMakeFiles/muduo_learning.dir/Socket.cc.o: src/CMakeFiles/muduo_learning.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangyan/projects/muduo-learning/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object src/CMakeFiles/muduo_learning.dir/Socket.cc.o"
+	cd /home/zhangyan/projects/muduo-learning/build/src && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/muduo_learning.dir/Socket.cc.o -MF CMakeFiles/muduo_learning.dir/Socket.cc.o.d -o CMakeFiles/muduo_learning.dir/Socket.cc.o -c /home/zhangyan/projects/muduo-learning/src/Socket.cc
+
+src/CMakeFiles/muduo_learning.dir/Socket.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/muduo_learning.dir/Socket.cc.i"
+	cd /home/zhangyan/projects/muduo-learning/build/src && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/zhangyan/projects/muduo-learning/src/Socket.cc > CMakeFiles/muduo_learning.dir/Socket.cc.i
+
+src/CMakeFiles/muduo_learning.dir/Socket.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/muduo_learning.dir/Socket.cc.s"
+	cd /home/zhangyan/projects/muduo-learning/build/src && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/zhangyan/projects/muduo-learning/src/Socket.cc -o CMakeFiles/muduo_learning.dir/Socket.cc.s
+
 src/CMakeFiles/muduo_learning.dir/TcpServer.cc.o: src/CMakeFiles/muduo_learning.dir/flags.make
 src/CMakeFiles/muduo_learning.dir/TcpServer.cc.o: ../src/TcpServer.cc
 src/CMakeFiles/muduo_learning.dir/TcpServer.cc.o: src/CMakeFiles/muduo_learning.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangyan/projects/muduo-learning/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object src/CMakeFiles/muduo_learning.dir/TcpServer.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangyan/projects/muduo-learning/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object src/CMakeFiles/muduo_learning.dir/TcpServer.cc.o"
 	cd /home/zhangyan/projects/muduo-learning/build/src && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/muduo_learning.dir/TcpServer.cc.o -MF CMakeFiles/muduo_learning.dir/TcpServer.cc.o.d -o CMakeFiles/muduo_learning.dir/TcpServer.cc.o -c /home/zhangyan/projects/muduo-learning/src/TcpServer.cc
 
 src/CMakeFiles/muduo_learning.dir/TcpServer.cc.i: cmake_force
@@ -226,7 +240,7 @@ src/CMakeFiles/muduo_learning.dir/TcpServer.cc.s: cmake_force
 src/CMakeFiles/muduo_learning.dir/Thread.cc.o: src/CMakeFiles/muduo_learning.dir/flags.make
 src/CMakeFiles/muduo_learning.dir/Thread.cc.o: ../src/Thread.cc
 src/CMakeFiles/muduo_learning.dir/Thread.cc.o: src/CMakeFiles/muduo_learning.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangyan/projects/muduo-learning/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object src/CMakeFiles/muduo_learning.dir/Thread.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangyan/projects/muduo-learning/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object src/CMakeFiles/muduo_learning.dir/Thread.cc.o"
 	cd /home/zhangyan/projects/muduo-learning/build/src && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/muduo_learning.dir/Thread.cc.o -MF CMakeFiles/muduo_learning.dir/Thread.cc.o.d -o CMakeFiles/muduo_learning.dir/Thread.cc.o -c /home/zhangyan/projects/muduo-learning/src/Thread.cc
 
 src/CMakeFiles/muduo_learning.dir/Thread.cc.i: cmake_force
@@ -240,7 +254,7 @@ src/CMakeFiles/muduo_learning.dir/Thread.cc.s: cmake_force
 src/CMakeFiles/muduo_learning.dir/Timestamp.cc.o: src/CMakeFiles/muduo_learning.dir/flags.make
 src/CMakeFiles/muduo_learning.dir/Timestamp.cc.o: ../src/Timestamp.cc
 src/CMakeFiles/muduo_learning.dir/Timestamp.cc.o: src/CMakeFiles/muduo_learning.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangyan/projects/muduo-learning/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object src/CMakeFiles/muduo_learning.dir/Timestamp.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangyan/projects/muduo-learning/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object src/CMakeFiles/muduo_learning.dir/Timestamp.cc.o"
 	cd /home/zhangyan/projects/muduo-learning/build/src && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/muduo_learning.dir/Timestamp.cc.o -MF CMakeFiles/muduo_learning.dir/Timestamp.cc.o.d -o CMakeFiles/muduo_learning.dir/Timestamp.cc.o -c /home/zhangyan/projects/muduo-learning/src/Timestamp.cc
 
 src/CMakeFiles/muduo_learning.dir/Timestamp.cc.i: cmake_force
@@ -263,6 +277,7 @@ muduo_learning_OBJECTS = \
 "CMakeFiles/muduo_learning.dir/InetAddress.cc.o" \
 "CMakeFiles/muduo_learning.dir/Logger.cc.o" \
 "CMakeFiles/muduo_learning.dir/Poller.cc.o" \
+"CMakeFiles/muduo_learning.dir/Socket.cc.o" \
 "CMakeFiles/muduo_learning.dir/TcpServer.cc.o" \
 "CMakeFiles/muduo_learning.dir/Thread.cc.o" \
 "CMakeFiles/muduo_learning.dir/Timestamp.cc.o"
@@ -280,12 +295,13 @@ muduo_learning_EXTERNAL_OBJECTS =
 ../lib/libmuduo_learning.so: src/CMakeFiles/muduo_learning.dir/InetAddress.cc.o
 ../lib/libmuduo_learning.so: src/CMakeFiles/muduo_learning.dir/Logger.cc.o
 ../lib/libmuduo_learning.so: src/CMakeFiles/muduo_learning.dir/Poller.cc.o
+../lib/libmuduo_learning.so: src/CMakeFiles/muduo_learning.dir/Socket.cc.o
 ../lib/libmuduo_learning.so: src/CMakeFiles/muduo_learning.dir/TcpServer.cc.o
 ../lib/libmuduo_learning.so: src/CMakeFiles/muduo_learning.dir/Thread.cc.o
 ../lib/libmuduo_learning.so: src/CMakeFiles/muduo_learning.dir/Timestamp.cc.o
 ../lib/libmuduo_learning.so: src/CMakeFiles/muduo_learning.dir/build.make
 ../lib/libmuduo_learning.so: src/CMakeFiles/muduo_learning.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/zhangyan/projects/muduo-learning/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Linking CXX shared library ../../lib/libmuduo_learning.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/zhangyan/projects/muduo-learning/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Linking CXX shared library ../../lib/libmuduo_learning.so"
 	cd /home/zhangyan/projects/muduo-learning/build/src && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/muduo_learning.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

@@ -20,8 +20,8 @@ public:
     // 获取底层fd
     int  fd() const { return sockfd_; }
 
-    // 绑定本地地址，将socket绑定到localaddr指定的ip和端口
-    void bindAddress(const InetAddress &localaddr);
+    // 将socket fd绑定到指定的本地地址（IP+端口）
+    void bindAddress(const InetAddress &localaddr); // localaddr 是 InetAddress 类型，封装了 IP 地址和端口信息
 
     // 开启监听
     void listen();
@@ -39,6 +39,6 @@ public:
     void setKeepAlive (bool on); // 启用 TCP keepalive 检测对端连接状态
 
 private:
-    const int sockfd_;
+    const int sockfd_; // socket 文件描述符（只读）
 
 };

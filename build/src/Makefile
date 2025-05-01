@@ -370,6 +370,30 @@ Poller.cc.s:
 	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/muduo_learning.dir/build.make src/CMakeFiles/muduo_learning.dir/Poller.cc.s
 .PHONY : Poller.cc.s
 
+Socket.o: Socket.cc.o
+.PHONY : Socket.o
+
+# target to build an object file
+Socket.cc.o:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/muduo_learning.dir/build.make src/CMakeFiles/muduo_learning.dir/Socket.cc.o
+.PHONY : Socket.cc.o
+
+Socket.i: Socket.cc.i
+.PHONY : Socket.i
+
+# target to preprocess a source file
+Socket.cc.i:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/muduo_learning.dir/build.make src/CMakeFiles/muduo_learning.dir/Socket.cc.i
+.PHONY : Socket.cc.i
+
+Socket.s: Socket.cc.s
+.PHONY : Socket.s
+
+# target to generate assembly for a file
+Socket.cc.s:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/muduo_learning.dir/build.make src/CMakeFiles/muduo_learning.dir/Socket.cc.s
+.PHONY : Socket.cc.s
+
 TcpServer.o: TcpServer.cc.o
 .PHONY : TcpServer.o
 
@@ -481,6 +505,9 @@ help:
 	@echo "... Poller.o"
 	@echo "... Poller.i"
 	@echo "... Poller.s"
+	@echo "... Socket.o"
+	@echo "... Socket.i"
+	@echo "... Socket.s"
 	@echo "... TcpServer.o"
 	@echo "... TcpServer.i"
 	@echo "... TcpServer.s"

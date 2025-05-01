@@ -18,6 +18,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/zhangyan/projects/muduo-learning/src/InetAddress.cc" "src/CMakeFiles/muduo_learning.dir/InetAddress.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/InetAddress.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/Logger.cc" "src/CMakeFiles/muduo_learning.dir/Logger.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Logger.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/Poller.cc" "src/CMakeFiles/muduo_learning.dir/Poller.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Poller.cc.o.d"
+  "/home/zhangyan/projects/muduo-learning/src/Socket.cc" "src/CMakeFiles/muduo_learning.dir/Socket.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Socket.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/TcpServer.cc" "src/CMakeFiles/muduo_learning.dir/TcpServer.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/TcpServer.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/Thread.cc" "src/CMakeFiles/muduo_learning.dir/Thread.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Thread.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/Timestamp.cc" "src/CMakeFiles/muduo_learning.dir/Timestamp.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Timestamp.cc.o.d"

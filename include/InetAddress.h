@@ -45,5 +45,4 @@ public:
 
 private:
     sockaddr_in addr_; // 封装的数据成员，存储底层的IPv4套接字地址
-
 };

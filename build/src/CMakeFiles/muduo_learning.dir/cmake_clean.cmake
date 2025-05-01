@@ -21,6 +21,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/muduo_learning.dir/Logger.cc.o.d"
   "CMakeFiles/muduo_learning.dir/Poller.cc.o"
   "CMakeFiles/muduo_learning.dir/Poller.cc.o.d"
+  "CMakeFiles/muduo_learning.dir/Socket.cc.o"
+  "CMakeFiles/muduo_learning.dir/Socket.cc.o.d"
   "CMakeFiles/muduo_learning.dir/TcpServer.cc.o"
   "CMakeFiles/muduo_learning.dir/TcpServer.cc.o.d"
   "CMakeFiles/muduo_learning.dir/Thread.cc.o"
