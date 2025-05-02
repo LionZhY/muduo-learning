@@ -72,23 +72,22 @@ void Socket::shutdownWrite()
 }
 
 
-// Socket 选项设置
+// Socket 选项设置  封装setsockopt()
 
 // 启用/禁用Nagle算法
 void Socket::setTcpNoDelay(bool on) 
 {
     // TCP_NODELAY 用于禁用Nagle算法
-    // Nagle算法用于减少网络上传输的小数据报数量
-    // 将 TCP_NODELAY 设置为1，可以禁用该算法，允许小数据包立即发送
-    int optval = on ? 1 : 0;
+    // Nagle算法用于减少网络上传输的小数据报数量，将 optval 设置为1，可以禁用该算法，允许小数据包立即发送
+    int optval = on ? 1 : 0; // on控制optval的值
     ::setsockopt(sockfd_, IPPROTO_TCP, TCP_NODELAY, &optval, sizeof(optval));
 }
 
 // 设置地址重用，允许快速重启服务绑定相同端口
 void Socket::setReuseAddr (bool on) 
 {
-    // SO_REUSEADDR 允许一个套接字强制绑定到一个已被其他套接字使用的端口
-    // 这对于需要重启并绑定到相同端口的服务器应用程序非常有用
+    // SO_REUSEADDR 设置地址重用
+    // 通常一个端口在关闭后会进入 TIME_WAIT 状态，短时间不能再次绑定。设置 SO_REUSEADDR 后，端口可以立即再次绑定。
     int optval = on ? 1 : 0;
     ::setsockopt(sockfd_, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 }
@@ -96,7 +95,7 @@ void Socket::setReuseAddr (bool on)
 // 设置端口复用，允许多个 socket 实例监听同一端口，支持多线程
 void Socket::setReusePort (bool on) 
 {
-    // SO_REUSEPORT 允许同一主机上的多个套接字绑定到相同的端口号
+    // SO_REUSEPORT 允许同一主机上的多个socket绑定到相同的端口号
     // 用于在多个线程或进程之间负载均衡传入连接
     int optval = on ? 1 : 0;
     ::setsockopt(sockfd_, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
@@ -107,7 +106,7 @@ void Socket::setKeepAlive (bool on)
 {
     // SO_KEEPALIVE 启用在已连接的socket上定期传输消息
     // 如果另一端没有响应，则认为连接已断开并关闭
-    // 这对于检测网络中失效的对等方非常有用
+    // TCP 本身对连接断开不敏感，如对方断电不会立即察觉。启用后，内核会周期性发送探测包检测连接存活性。
     int optval = on ? 1 : 0;
     ::setsockopt(sockfd_, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
 }
