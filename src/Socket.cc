@@ -36,7 +36,7 @@ void Socket::listen()
 }
 
 
-// 接受连接
+// 接受连接 封装accept4()
 int Socket::accept(InetAddress* peeraddr) // 参数peeraddr 用于存储客户端的地址信息
 {
     /**
