@@ -1,6 +1,11 @@
 [
 {
   "directory": "/home/zhangyan/projects/muduo-learning/build/src",
+  "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/Acceptor.cc.o -c /home/zhangyan/projects/muduo-learning/src/Acceptor.cc",
+  "file": "/home/zhangyan/projects/muduo-learning/src/Acceptor.cc"
+},
+{
+  "directory": "/home/zhangyan/projects/muduo-learning/build/src",
   "command": "/usr/bin/g++ -Dmuduo_learning_EXPORTS -I/home/zhangyan/projects/muduo-learning/include -g -fPIC -std=gnu++11 -o CMakeFiles/muduo_learning.dir/Channel.cc.o -c /home/zhangyan/projects/muduo-learning/src/Channel.cc",
   "file": "/home/zhangyan/projects/muduo-learning/src/Channel.cc"
 },

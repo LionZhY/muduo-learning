@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "../../lib/libmuduo_learning.pdb"
   "../../lib/libmuduo_learning.so"
+  "CMakeFiles/muduo_learning.dir/Acceptor.cc.o"
+  "CMakeFiles/muduo_learning.dir/Acceptor.cc.o.d"
   "CMakeFiles/muduo_learning.dir/Channel.cc.o"
   "CMakeFiles/muduo_learning.dir/Channel.cc.o.d"
   "CMakeFiles/muduo_learning.dir/CurrentThread.cc.o"
