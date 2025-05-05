@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/zhangyan/projects/muduo-learning/src/Acceptor.cc" "src/CMakeFiles/muduo_learning.dir/Acceptor.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Acceptor.cc.o.d"
+  "/home/zhangyan/projects/muduo-learning/src/Buffer.cc" "src/CMakeFiles/muduo_learning.dir/Buffer.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Buffer.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/Channel.cc" "src/CMakeFiles/muduo_learning.dir/Channel.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Channel.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/CurrentThread.cc" "src/CMakeFiles/muduo_learning.dir/CurrentThread.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/CurrentThread.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/DefaultPoller.cc" "src/CMakeFiles/muduo_learning.dir/DefaultPoller.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/DefaultPoller.cc.o.d"
@@ -20,6 +21,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/zhangyan/projects/muduo-learning/src/Logger.cc" "src/CMakeFiles/muduo_learning.dir/Logger.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Logger.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/Poller.cc" "src/CMakeFiles/muduo_learning.dir/Poller.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Poller.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/Socket.cc" "src/CMakeFiles/muduo_learning.dir/Socket.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Socket.cc.o.d"
+  "/home/zhangyan/projects/muduo-learning/src/TcpConnection.cc" "src/CMakeFiles/muduo_learning.dir/TcpConnection.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/TcpConnection.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/TcpServer.cc" "src/CMakeFiles/muduo_learning.dir/TcpServer.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/TcpServer.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/Thread.cc" "src/CMakeFiles/muduo_learning.dir/Thread.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Thread.cc.o.d"
   "/home/zhangyan/projects/muduo-learning/src/Timestamp.cc" "src/CMakeFiles/muduo_learning.dir/Timestamp.cc.o" "gcc" "src/CMakeFiles/muduo_learning.dir/Timestamp.cc.o.d"

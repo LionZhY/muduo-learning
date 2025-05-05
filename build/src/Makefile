@@ -154,6 +154,30 @@ Acceptor.cc.s:
 	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/muduo_learning.dir/build.make src/CMakeFiles/muduo_learning.dir/Acceptor.cc.s
 .PHONY : Acceptor.cc.s
 
+Buffer.o: Buffer.cc.o
+.PHONY : Buffer.o
+
+# target to build an object file
+Buffer.cc.o:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/muduo_learning.dir/build.make src/CMakeFiles/muduo_learning.dir/Buffer.cc.o
+.PHONY : Buffer.cc.o
+
+Buffer.i: Buffer.cc.i
+.PHONY : Buffer.i
+
+# target to preprocess a source file
+Buffer.cc.i:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/muduo_learning.dir/build.make src/CMakeFiles/muduo_learning.dir/Buffer.cc.i
+.PHONY : Buffer.cc.i
+
+Buffer.s: Buffer.cc.s
+.PHONY : Buffer.s
+
+# target to generate assembly for a file
+Buffer.cc.s:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/muduo_learning.dir/build.make src/CMakeFiles/muduo_learning.dir/Buffer.cc.s
+.PHONY : Buffer.cc.s
+
 Channel.o: Channel.cc.o
 .PHONY : Channel.o
 
@@ -418,6 +442,30 @@ Socket.cc.s:
 	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/muduo_learning.dir/build.make src/CMakeFiles/muduo_learning.dir/Socket.cc.s
 .PHONY : Socket.cc.s
 
+TcpConnection.o: TcpConnection.cc.o
+.PHONY : TcpConnection.o
+
+# target to build an object file
+TcpConnection.cc.o:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/muduo_learning.dir/build.make src/CMakeFiles/muduo_learning.dir/TcpConnection.cc.o
+.PHONY : TcpConnection.cc.o
+
+TcpConnection.i: TcpConnection.cc.i
+.PHONY : TcpConnection.i
+
+# target to preprocess a source file
+TcpConnection.cc.i:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/muduo_learning.dir/build.make src/CMakeFiles/muduo_learning.dir/TcpConnection.cc.i
+.PHONY : TcpConnection.cc.i
+
+TcpConnection.s: TcpConnection.cc.s
+.PHONY : TcpConnection.s
+
+# target to generate assembly for a file
+TcpConnection.cc.s:
+	cd /home/zhangyan/projects/muduo-learning/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/muduo_learning.dir/build.make src/CMakeFiles/muduo_learning.dir/TcpConnection.cc.s
+.PHONY : TcpConnection.cc.s
+
 TcpServer.o: TcpServer.cc.o
 .PHONY : TcpServer.o
 
@@ -502,6 +550,9 @@ help:
 	@echo "... Acceptor.o"
 	@echo "... Acceptor.i"
 	@echo "... Acceptor.s"
+	@echo "... Buffer.o"
+	@echo "... Buffer.i"
+	@echo "... Buffer.s"
 	@echo "... Channel.o"
 	@echo "... Channel.i"
 	@echo "... Channel.s"
@@ -535,6 +586,9 @@ help:
 	@echo "... Socket.o"
 	@echo "... Socket.i"
 	@echo "... Socket.s"
+	@echo "... TcpConnection.o"
+	@echo "... TcpConnection.i"
+	@echo "... TcpConnection.s"
 	@echo "... TcpServer.o"
 	@echo "... TcpServer.i"
 	@echo "... TcpServer.s"
