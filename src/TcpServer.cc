@@ -5,7 +5,7 @@
 #include "Logger.h"
 #include "TcpConnection.h"
 
-
+// 工具函数：检查Loop不为空
 static EventLoop* CheckLoopNotNull(EventLoop* loop)
 {
     if (loop == nullptr)
@@ -16,21 +16,22 @@ static EventLoop* CheckLoopNotNull(EventLoop* loop)
 }
 
 
-TcpServer::TcpServer(EventLoop* loop,              // 主EventLoop
+TcpServer::TcpServer(EventLoop* loop,              // mainLoop指针
                      const InetAddress& listenAddr,// 监听地址
                      const std::string& nameArg,   // 服务器名称
                      Option option = kNoReusePort) // 端口复用选项
-    : loop_(CheckLoopNotNull(loop))
-    , ipPort_(listenAddr.toIpPort())
-    , name_(nameArg)
-    , acceptor_(new Acceptor(loop, listenAddr, option == kNoReusePort))
-    , threadPool_(new EventLoopThreadPool(loop, name_))
-    , connectionCallback_()
+    : loop_(CheckLoopNotNull(loop))  // mainLoop(检查是否空)
+    , ipPort_(listenAddr.toIpPort()) // 监听地址 IP:Port
+    , name_(nameArg) // 服务器名称
+    , acceptor_(new Acceptor(loop, listenAddr, option == kNoReusePort)) // 创建Acceptor对象
+    , threadPool_(new EventLoopThreadPool(loop, name_)) // 初始化线程池对象
+    , connectionCallback_() 
     , messageCallback_()
-    , nextConnId_(1)
+    , nextConnId_(1) // 用于生成连接的唯一ID
     , started_(0)
 {
-    // 当有新用户连接时，Acceptor类中绑定的acceptChannel_会有读事件发生，执行handleRead()，调用TcpServer::newConnection回调
+    // 设置新用户连接时的回调：
+    // Acceptor监听到有新连接到来，在handleRead()执行回调，这里将回调设置为TcpServer::newConnection
     acceptor_->setNewConnectionCallback(
         std::bind(&TcpServer::newConnection, this, std::placeholders::_1, std::placeholders::_2) );
 }

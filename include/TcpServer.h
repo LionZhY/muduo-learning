@@ -68,15 +68,15 @@ private:
     // 在subloop中执行连接销毁
     void removeConnectionInLoop(const TcpConnectionPtr& conn);
 
-    using ConnectionMap = std::unordered_map<std::string, TcpConnectionPtr>; // 用于保存所有连接 <连接名，TcpConnectionPtr>
+    using ConnectionMap = std::unordered_map<std::string, TcpConnectionPtr>; // <连接名，TcpConnectionPtr>
+    ConnectionMap connections_; // 当前所有的Tcp连接
 
     EventLoop* loop_; // baseloop(mianloop) 用户自定义的loop
 
     const std::string ipPort_; // 监听地址
     const std::string name_;   // 服务器名称，用户自定义
 
-    std::unique_ptr<Acceptor> acceptor_; // 智能指针管理Acceptor  运行在mainLoop 任务就是监听新连接事件
-
+    std::unique_ptr<Acceptor> acceptor_; // 智能指针管理Acceptor  运行在mainLoop负责监听新连接事件
     std::shared_ptr<EventLoopThreadPool> threadPool_; // 管理一个线程池 one loop per thread
 
     ConnectionCallback connectionCallback_;       // 有新连接时的回调
@@ -88,6 +88,6 @@ private:
     int numThreads_;          // 线程池中线程的数量
     std::atomic_int started_; // 服务器是否已启动
     int nextConnId_;          // 为每个连接生成唯一表示（拼接成连接名）
-    ConnectionMap connections_; // 当前所有的Tcp连接
+    
     
 };
