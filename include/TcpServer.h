@@ -88,6 +88,5 @@ private:
     int numThreads_;          // 线程池中线程的数量
     std::atomic_int started_; // 服务器是否已启动
     int nextConnId_;          // 为每个连接生成唯一表示（拼接成连接名）
-    
-    
+     
 };

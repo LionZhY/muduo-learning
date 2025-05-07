@@ -38,22 +38,23 @@ TcpServer::TcpServer(EventLoop* loop,              // mainLoop指针
 
 TcpServer::~TcpServer()
 {
-    for (auto &item : connections_)
+    // 清理所有Tcp连接
+    for (auto &item : connections_) // 每个 item 是一个 <连接名, TcpConnectionPtr> 键值对
     {
-        TcpConnectionPtr conn(item.second);
-        item.second.reset(); // 把原始的智能指针复位，让栈空间的TcpConnectionPtr conn指向该对象  当conn出了其作用域 即可释放智能指针指向的对象
-        // 销毁连接
+        TcpConnectionPtr conn(item.second); // 取出原有的 TcpConnectionPtr，赋值给局部变量 conn
+        item.second.reset(); // 原来的 TcpConnectionPtr 清空（释放引用）
+        
+        // 分发到对应 subLoop 中执行连接销毁操作 TcpConnection::getLoop()
         conn->getLoop()->runInLoop(
-            std::bind(&TcpConnection::connectDestroyed, conn) );;
+            std::bind(&TcpConnection::connectDestroyed, conn) );; // 绑定了conn的销毁函数 connectDestroyed()
     }
-
 }
 
 
 // 设置线程池中线程数量 (底层subloop个数)   
 void TcpServer::setThreadNum (int numThreads) // 默认为0 即所有事件都在主线程处理
 {
-    int numThreads_ = numThreads;
+    numThreads_ = numThreads;
     threadPool_->setThreadNum(numThreads_);
 }
 
@@ -61,10 +62,10 @@ void TcpServer::setThreadNum (int numThreads) // 默认为0 即所有事件都�
 // 启动 TcpServer（只可调用一次），开启 Acceptor 监听，启动线程池
 void TcpServer::start()
 {
-    if (started_.fetch_add(1) == 0) // 防止一个TcpServer对象被start多次
+    if (started_.fetch_add(1) == 0) // 只有第一次调用会执行以下代码 防止一个TcpServer对象被start多次
     {
         threadPool_->start(threadInitCallback_); // 启动底层的loop线程池
-        loop_->runInLoop(std::bind(&Acceptor::listen, acceptor_.get()));
+        loop_->runInLoop(std::bind(&Acceptor::listen, acceptor_.get())); // 启动监听
     }
 }
 
@@ -72,49 +73,55 @@ void TcpServer::start()
 // 新连接建立后的处理
 void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
 {
+    // 传入accept后得到的客户端Socketfd  客户端的地址peerAddr
     /**
-     * 有一个新用户连接，acceptor会执行这个回调
+     * 在有新连接建立时由 Acceptor 触发的回调函数
      * 负责将mainloop接收到的请求连接(acceptChannel_会有读事件发生) 通过回调轮询分发给subloop去处理
      */
     
-    // 轮询算法 选择一个subloop来管理connfd对应的channel
+    // 从线程池中选择一个subloop
     EventLoop* ioLoop = threadPool_->getNextLoop();
-    char buf[64] = {0};
-    snprintf(buf, sizeof buf, "-%s#%d", ipPort_.c_str(), nextConnId_);
-    ++nextConnId_; // 这里没有设置原子类 是因为其只在mainloop中执行 不涉及线程安全问题
-    std::string connName = name_ + buf;
 
+    // 构造唯一的连接名称connName 如 "MyServer-127.0.0.1:8080#1"
+    char buf[64] = {0};
+    snprintf(buf, sizeof buf, "-%s#%d", ipPort_.c_str(), nextConnId_); // 构造连接名后缀，例如：-127.0.0.1:8000#1
+    ++nextConnId_; // 这里没有设置原子类 是因为其只在mainloop中执行 不涉及线程安全问题
+    std::string connName = name_ + buf; // 拼接 服务器名称-127.0.0.1:8080#1
+
+    // 日志记录当前连接信息
     LOG_INFO("TcpServer::newConnection [%s] - new connection [%s] from %s\n",
               name_.c_str(), connName.c_str(), peerAddr.toIpPort().c_str());
     
     // 通过sockfd获取其绑定的本机的ip地址和端口信息
-    sockaddr_in local;
+    sockaddr_in local; // 保存本地地址信息（服务端）
     ::memset(&local, 0, sizeof(local));
     socklen_t addrlen = sizeof(local);
-    if (::getsockname(sockfd, (sockaddr*)&local, &addrlen) < 0)
+    if (::getsockname(sockfd, (sockaddr*)&local, &addrlen) < 0) // 调用 getsockname() 获取sockfd对应的本地地址
     {
-        LOG_ERROR("sockets::getLocalAddr");
+        LOG_ERROR("sockets::getLocalAddr"); // 调用失败 打印日志
     }
 
-    InetAddress localAddr(local);
-    TcpConnectionPtr conn(new TcpConnection(ioLoop,
-                                            connName,
+    InetAddress localAddr(local); // 将系统调用获取的 sockaddr_in 包装成自定义 InetAddress 对象
+    // 创建TcpConnection智能指针
+    TcpConnectionPtr conn(new TcpConnection(ioLoop,     // 选择的subLoop 管理该连接
+                                            connName,   // 当前连接的名称
                                             sockfd,
                                             localAddr,
                                             peerAddr));
 
-    connections_[connName] = conn;
+    // 将连接加入Tcp连接的map中
+    connections_[connName] = conn; // <连接名，TcpConnectionPtr>
 
-    // 下面的回调是用户设置给TcpServer => TcpConnection的，
-    // 至于Channel绑定的则是TcpConnection设置的四个，handleRead,handleWrite... 这下面的回调用于handlexxx函数中
-    conn->setConnectionCallback(connectionCallback_);
-    conn->setMessageCallback(messageCallback_);
-    conn->setWriteCompleteCallback(writeCompleteCallback_);
+    // 设置用户传入的回调
+    conn->setConnectionCallback(connectionCallback_);       // 连接建立/关闭时的回调
+    conn->setMessageCallback(messageCallback_);             // 消息到达时的回调
+    conn->setWriteCompleteCallback(writeCompleteCallback_); // 数据写入完成时的回调
 
-    // 设置了如何关闭连接的回调
+    // 设置了关闭连接时的回调
     conn->setCloseCallback(
         std::bind(&TcpServer::removeConnection, this, std::placeholders::_1) );
     
+    // 将连接建立的后续工作封装成一个任务，扔进 subLoop 的事件循环中去执行
     ioLoop->runInLoop(
         std::bind(&TcpConnection::connectEstablished, conn) );
 }

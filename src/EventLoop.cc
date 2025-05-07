@@ -111,7 +111,7 @@ void EventLoop::quit()
 }
 
 
-// 若是当前loop线程创建的EventLoop，立即执行cb
+// 若是当前loop线程创建的EventLoop，立即执行回调cb
 void EventLoop::runInLoop(Functor cb)
 {
     if (isInLoopThread()) // 如果当前线程是否是这个EventLoop所属的线程，直接执行回调cb()

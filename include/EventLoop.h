@@ -38,7 +38,7 @@ public:
     // 返回上一次 poller_->poll()的返回时间
     Timestamp pollReturnTime () const   { return pollReturnTime_; }
 
-    // 在当前loop中执行
+    // 在当前loop中执行回调
     void runInLoop(Functor cb);
     // 把上层注册的回调函数cb放入队列中，唤醒loop所在的线程执行cb
     void queueInLoop(Functor cb);
