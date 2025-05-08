@@ -43,7 +43,7 @@ public:
     
     ~TcpServer();
 
-    // 设置用户层定义的回调
+    // 设置用户层定义的回调 => 存入成员变量
     void setThreadInitCallback(const ThreadInitCallback& cb) { threadInitCallback_ = cb; } // subloop初始化时的用户回调
     void setConnectionCallback(const ConnectionCallback& cb) { connectionCallback_ = cb; } // 连接回调
     void setMessageCallback   (const MessageCallback& cb)    { messageCallback_ = cb; }    // 消息处理回调
@@ -61,9 +61,9 @@ public:
     void start();
 
 private:
-    // 新连接建立后的处理
+    // 新连接建立后的回调
     void newConnection(int sockfd, const InetAddress& peerAddr);
-    // 连接关闭请求
+    // Tcp连接关闭的回调
     void removeConnection(const TcpConnectionPtr& conn);
     // 在subloop中执行连接销毁
     void removeConnectionInLoop(const TcpConnectionPtr& conn);

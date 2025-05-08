@@ -74,25 +74,26 @@ void TcpServer::start()
 void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
 {
     // 传入accept后得到的客户端Socketfd  客户端的地址peerAddr
+
     /**
      * 在有新连接建立时由 Acceptor 触发的回调函数
      * 负责将mainloop接收到的请求连接(acceptChannel_会有读事件发生) 通过回调轮询分发给subloop去处理
      */
     
     // 从线程池中选择一个subloop
-    EventLoop* ioLoop = threadPool_->getNextLoop();
+    EventLoop* ioLoop = threadPool_->getNextLoop(); 
 
     // 构造唯一的连接名称connName 如 "MyServer-127.0.0.1:8080#1"
-    char buf[64] = {0};
-    snprintf(buf, sizeof buf, "-%s#%d", ipPort_.c_str(), nextConnId_); // 构造连接名后缀，例如：-127.0.0.1:8000#1
-    ++nextConnId_; // 这里没有设置原子类 是因为其只在mainloop中执行 不涉及线程安全问题
+    char buf[64] = {0}; // 构造连接名后缀，监听地址#连接计数 如：-127.0.0.1:8000#1
+    snprintf(buf, sizeof buf, "-%s#%d", ipPort_.c_str(), nextConnId_); 
+    ++nextConnId_; // 连接ID自增 
     std::string connName = name_ + buf; // 拼接 服务器名称-127.0.0.1:8080#1
 
-    // 日志记录当前连接信息
-    LOG_INFO("TcpServer::newConnection [%s] - new connection [%s] from %s\n",
+    // 打印连接建立日志  服务器名 连接名 客户端IP:Port
+    LOG_INFO("TcpServer::newConnection [%s] - new connection [%s] from %s\n", 
               name_.c_str(), connName.c_str(), peerAddr.toIpPort().c_str());
     
-    // 通过sockfd获取其绑定的本机的ip地址和端口信息
+    // 获取sockfd绑定的本地地址localAddr（服务端）
     sockaddr_in local; // 保存本地地址信息（服务端）
     ::memset(&local, 0, sizeof(local));
     socklen_t addrlen = sizeof(local);
@@ -100,26 +101,25 @@ void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
     {
         LOG_ERROR("sockets::getLocalAddr"); // 调用失败 打印日志
     }
-
-    InetAddress localAddr(local); // 将系统调用获取的 sockaddr_in 包装成自定义 InetAddress 对象
-    // 创建TcpConnection智能指针
-    TcpConnectionPtr conn(new TcpConnection(ioLoop,     // 选择的subLoop 管理该连接
-                                            connName,   // 当前连接的名称
-                                            sockfd,
-                                            localAddr,
-                                            peerAddr));
+    InetAddress localAddr(local); // 将获取的 sockaddr_in 包装成 InetAddress 类对象
+    
+    // 创建TcpConnectionPtr智能指针 conn
+    TcpConnectionPtr conn( new TcpConnection( // TcpConnection
+                                        ioLoop,     
+                                        connName,   
+                                        sockfd,
+                                        localAddr,  // 服务端地址（本地地址）
+                                        peerAddr) );// 客户端地址           
 
     // 将连接加入Tcp连接的map中
     connections_[connName] = conn; // <连接名，TcpConnectionPtr>
 
-    // 设置用户传入的回调
+    // 用户设置给具体连接TcpConnection的回调
     conn->setConnectionCallback(connectionCallback_);       // 连接建立/关闭时的回调
     conn->setMessageCallback(messageCallback_);             // 消息到达时的回调
     conn->setWriteCompleteCallback(writeCompleteCallback_); // 数据写入完成时的回调
-
-    // 设置了关闭连接时的回调
     conn->setCloseCallback(
-        std::bind(&TcpServer::removeConnection, this, std::placeholders::_1) );
+        std::bind(&TcpServer::removeConnection, this, std::placeholders::_1) ); // 关闭连接时的回调
     
     // 将连接建立的后续工作封装成一个任务，扔进 subLoop 的事件循环中去执行
     ioLoop->runInLoop(
@@ -127,23 +127,26 @@ void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
 }
 
 
-// 连接关闭请求
+// Tcp连接关闭的回调
 void TcpServer::removeConnection(const TcpConnectionPtr& conn)
 {
-    loop_->runInLoop(
-        std::bind(&TcpServer::removeConnectionInLoop, this, conn) );
+    loop_->runInLoop( // removeConnectionInLoop()绑定conn 作为任务传给mainLoop
+        std::bind(&TcpServer::removeConnectionInLoop, this, conn) ); 
 }
 
 
-// 在subloop中执行连接销毁
+// 在subloop中执行连接销毁 由mainLoop调用
 void TcpServer::removeConnectionInLoop(const TcpConnectionPtr& conn)
 {
+    // 打印日志：服务器名称 连接名称
     LOG_INFO("TcpServer::removeConnectionInLoop [%s] - connection %s\n",
              name_.c_str(), conn->name().c_str());
     
-    connections_.erase(conn->name());
-    EventLoop* ioLoop = conn->getLoop();
-    ioLoop->queueInLoop(
-        std::bind(&TcpConnection::connectDestroyed, conn) );
-    
+    // 从Connectionmap中删除当前连接conn
+    connections_.erase(conn->name()); 
+
+    // 向subLoop提交connectDestroyed()任务 subLoop执行请清理资源
+    EventLoop* ioLoop = conn->getLoop(); // 获取当前连接所属的subLoop
+    ioLoop->queueInLoop( 
+        std::bind(&TcpConnection::connectDestroyed, conn) ); 
 }
