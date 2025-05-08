@@ -95,8 +95,8 @@ private:
     std::unique_ptr<Socket> socket_;
     std::unique_ptr<Channel> channel_;
 
-    const InetAddress localAddr_;
-    const InetAddress peerAddr_;
+    const InetAddress localAddr_; // 服务端地址 (本地地址)
+    const InetAddress peerAddr_;  // 客户端地址
 
     // 这些回调TcpServer也有 
     // 用户通过写入TcpServer注册 TcpServer再将注册的回调传给TcpConnection  TcpConnection再将回调注册到Channel中
