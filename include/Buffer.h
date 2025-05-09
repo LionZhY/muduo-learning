@@ -3,59 +3,70 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include <stddef.h>
+#include <stddef.h>  // 定义size_t类型
 
 /* 网络库底层的缓冲区类型定义 */
 
 class Buffer
 {
 public:
-    static const size_t kCheapPrepend = 8; // 初始预留的 prependabel空间大小
-    static const size_t kInitialSize = 1024; 
+    // 静态常量：缓冲区预留区和初始大小
+    static const size_t kCheapPrepend = 8;  // 预留的前置空间大小 8B
+    static const size_t kInitialSize = 1024;// 默认缓冲区初始大小 1KB
 
-    explicit Buffer(size_t initalSize = kInitialSize) // 类内定义 inline函数
-        : buffer_(kCheapPrepend + initalSize)
-        , readerIndex_(kCheapPrepend)
-        , writerIndex_(kCheapPrepend)
+    // 构造 
+    explicit Buffer(size_t initalSize = kInitialSize) // 传入缓冲区初始大小 默认为kInitialSize
+        : buffer_(kCheapPrepend + initalSize) // 缓冲区大小 = prepend预留 + initialSize
+        , readerIndex_(kCheapPrepend)         // 读指针初始设置在有效数据的起始位置
+        , writerIndex_(kCheapPrepend)         // 写指针也设置在起始位置，表示没有数据可读
     {
-
+        // 初始化时分配(kCheapPrepend + initalSize)的空间，读写位置都从kCheapPrepend开始
     }
 
-    size_t readableBytes() const { return writerIndex_ - readerIndex_; }
-    size_t writableBytes() const { return buffer_.size() - writerIndex_; }
-    size_t prependableBytes() const { return readerIndex_; }
+    // 可读字节 = 已写入数据长度
+    size_t readableBytes() const { return writerIndex_ - readerIndex_; }   
+    // 可写字节 = buffer总长 - 写指针 
+    size_t writableBytes() const { return buffer_.size() - writerIndex_; } 
+    // prepend前置区间 = 读指针左边的空间 
+    size_t prependableBytes() const { return readerIndex_; }                
 
-    // 返回缓冲区中可读数据的起始地址
+    // 获取当前可读数据的起始地址
     const char* peek() const { return begin() + readerIndex_; }
     
+    // 从缓冲区中读取len长度数据（仅移动readerIndex_，不拷贝数据）
     void retrieve(size_t len)
     {
-        if (len < readableBytes())
+        if (len < readableBytes()) // 读取部分数据，向前移动readerIndex_
         {
-            readerIndex_ += len; // 说明应用只读取了可读缓冲区数据的一部分，就是len长度，还剩下readerIndex+=len到writerIndex_的数据未读
+            readerIndex_ += len; 
+            // 说明应用只读取了可读缓冲区数据的一部分，就是len长度，还剩下readerIndex+=len到writerIndex_的数据未读
         }
-        else // len == readableBytes()
+        else // len == readableBytes()  全部数据已读取，调用清空操作
         {
-            retrieveAll();
+            retrieveAll(); 
         }
     }
 
-    void retrieveAll()
+    // 清空缓冲区，重置读写位置
+    void retrieveAll() 
     {
         readerIndex_ = kCheapPrepend;
         writerIndex_ = kCheapPrepend;
     }
 
-    // 把onMessage函数上报的Buffer数据，转成string类型的数据返回
-    std::string retrieveAllAsString() { return retrieveAsString(readableBytes()); }
+    // 以string形式返回所有可读数据，并清空缓冲区
+    std::string retrieveAllAsString() { return retrieveAsString(readableBytes()); } // retrieveAsString(所有可读字节)
+
+    // 以string形式返回指定长度的数据，并移动readerIndex_
     std::string retrieveAsString(size_t len)
     {
-        std::string result(peek(), len);
-        retrieve(len); // 上面一句把缓冲区中可读的数据已经读取出来了 这里肯定要对缓冲区进行复位操作
+        std::string result(peek(), len); // 从peek处构造指定长度len的字符串
+        retrieve(len); // 移动readerIndex_
         return result;
     }
 
-    // buffer_.size() - writerIndex_
+
+    // 保证缓冲区至少有len字节的可写空间，否则扩容 buffer_.size() - writerIndex_
     void ensureWritableBytes(size_t len)
     {
         if (writableBytes() < len)
@@ -64,44 +75,47 @@ public:
         }
     }
 
-    // 把[data, data+len]内存上的数据添加到writable缓冲区当中
+    // 把[data, data+len]内存上的数据添加到writable缓冲区末尾（自动扩容）
     void append(const char* data, size_t len)
     {
-        ensureWritableBytes(len);
-        std::copy(data, data+len, beginWrite());
-        writerIndex_ += len;
+        ensureWritableBytes(len); // 确保有足够len空间
+        std::copy(data, data+len, beginWrite()); // 将数据写入可写位置
+        writerIndex_ += len; // 更新writerIndex_
     }
 
+    // 获取当前写入位置的指针 
     char* beginWrite() { return begin() + writerIndex_; }
-    const char* beginWrite() const { return begin() + writerIndex_; }
+    const char* beginWrite() const { return begin() + writerIndex_; } // const重载
 
-    // 从fd上读取数据
+    // 从fd上读取数据 fd-->buffer
     ssize_t readFd(int fd, int* saveErrno);
-    // 通过fd发送数据
+    // 向fd写入数据   buffer-->fd
     ssize_t writeFd(int fd, int* saveErrno);
 
 
-
 private:
-    // vector底层数组首元素的地址 也就是数组的起始地址
-    char* begin() { return &*buffer_.begin(); }
-    const char* begin() const { return &*buffer_.begin(); }
+    // 获取buffer_底层数组的起始地址
+    char* begin() { return &*buffer_.begin(); } // vector底层数组首元素的地址 也就是数组的起始地址
+    const char* begin() const { return &*buffer_.begin(); } // const重载
     
+    // 扩容 确保至少有len字节可写
     void makeSpace(size_t len)
     {
         /**
          * | kCheapPrepend |xxx| reader | writer |                     // xxx标示reader中已读的部分
          * | kCheapPrepend | reader ｜          len          |
          **/
+        
+        // 若可写区+前置区不足以满足要求，直接扩容
         if (writableBytes() + prependableBytes() < len + kCheapPrepend) // 也就是说len > xxx前面剩余的空间 + writer的部分
         {
-            buffer_.resize(writerIndex_ + len);
+            buffer_.resize(writerIndex_ + len); // 扩大缓冲区容量
         }
-        else // 这里说明len <= xxx + writer 把reader搬到从xxx开始 是的xxx后面是一段连续的空间
+        else // 这里说明len <= xxx + writer 把reader搬到从xxx开始 使得xxx后面是一段连续的空间
         {
+            // 空间够 只需将已有数据前移到kCheapPrepend为止
             size_t readable = readableBytes(); // readable = reader的长度
-            // 将当前缓冲区中readerIndex_到writerIndex_的数据
-            // 拷贝到缓冲区起始位置kCheapPrepend处，以便腾出更多的可写空间
+            // 将当前缓冲区中readerIndex_到writerIndex_的数据 => 拷贝到缓冲区起始位置kCheapPrepend处，腾出更多的可写空间 
             std::copy(begin() + readerIndex_,
                       begin() + writerIndex_,
                       begin() + kCheapPrepend);
@@ -110,9 +124,9 @@ private:
         }
     }
 
-    std::vector<char> buffer_;
-    size_t readerIndex_;
-    size_t writerIndex_;
+    std::vector<char> buffer_; // 实际缓冲区
+    size_t readerIndex_; // 当前读指针
+    size_t writerIndex_; // 当前写指针
     
 };
 
