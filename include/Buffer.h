@@ -15,13 +15,21 @@ public:
     static const size_t kInitialSize = 1024;// 默认缓冲区初始大小 1KB
 
     // 构造 
-    explicit Buffer(size_t initalSize = kInitialSize) // 传入缓冲区初始大小 默认为kInitialSize
-        : buffer_(kCheapPrepend + initalSize) // 缓冲区大小 = prepend预留 + initialSize
+    explicit Buffer(size_t initalSize = kInitialSize) // 传入缓冲区初始大小 默认为kInitialSize(1024B)
+        : buffer_(kCheapPrepend + initalSize) // 分配缓冲区大小 = prepend预留 + initialSize
         , readerIndex_(kCheapPrepend)         // 读指针初始设置在有效数据的起始位置
         , writerIndex_(kCheapPrepend)         // 写指针也设置在起始位置，表示没有数据可读
     {
         // 初始化时分配(kCheapPrepend + initalSize)的空间，读写位置都从kCheapPrepend开始
     }
+
+
+    // |<--- prependableBytes() --->|<--- readableBytes() --->|<---- writableBytes() ---->|
+    // |         8 bytes           |                         |                            |
+    // |---------------------------|-------------------------|----------------------------|
+    // ^                           ^                         ^                            ^
+    // buffer_.begin()          readerIndex_           writerIndex_              buffer_.end()
+    
 
     // 可读字节 = 已写入数据长度
     size_t readableBytes() const { return writerIndex_ - readerIndex_; }   
@@ -36,18 +44,18 @@ public:
     // 从缓冲区中读取len长度数据（仅移动readerIndex_，不拷贝数据）
     void retrieve(size_t len)
     {
-        if (len < readableBytes()) // 读取部分数据，向前移动readerIndex_
+        // 请求读取的数据 len 小于当前的可读数据 readableBytes()
+        if (len < readableBytes()) 
         {
-            readerIndex_ += len; 
-            // 说明应用只读取了可读缓冲区数据的一部分，就是len长度，还剩下readerIndex+=len到writerIndex_的数据未读
+            readerIndex_ += len; // 前移 readerIndex_ 指针，表示前 len 字节已经被读取
         }
-        else // len == readableBytes()  全部数据已读取，调用清空操作
+        else // len >= readableBytes()  全部可读数据已读取
         {
-            retrieveAll(); 
+            retrieveAll(); // 调用清空操作 重置读写指针
         }
     }
 
-    // 清空缓冲区，重置读写位置
+    // 重置读写位置，清空缓冲区
     void retrieveAll() 
     {
         readerIndex_ = kCheapPrepend;
@@ -95,8 +103,8 @@ public:
 
 private:
     // 获取buffer_底层数组的起始地址
-    char* begin() { return &*buffer_.begin(); } // vector底层数组首元素的地址 也就是数组的起始地址
-    const char* begin() const { return &*buffer_.begin(); } // const重载
+    char* begin() { return &*buffer_.begin(); } // vector底层数组首元素的地址 
+    const char* begin() const { return &*buffer_.begin(); } // const重载（为了const buffer也能调用）
     
     // 扩容 确保至少有len字节可写
     void makeSpace(size_t len)
@@ -125,8 +133,8 @@ private:
     }
 
     std::vector<char> buffer_; // 实际缓冲区
-    size_t readerIndex_; // 当前读指针
-    size_t writerIndex_; // 当前写指针
+    size_t readerIndex_; // 当前读指针（已读出数据的位置）
+    size_t writerIndex_; // 当前写指针（已写入数据的位置）
     
 };
 
