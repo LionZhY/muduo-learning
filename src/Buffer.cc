@@ -22,8 +22,8 @@ ssize_t Buffer::readFd(int fd, int* saveErrno)
 
     /*
     struct iovec {
-        ptr_t iov_base; // iov_base指向的缓冲区 存放的是readv接收的数据，或是writev将要发送的数据
-        size_t iov_len; // iov_len在各种情况下分别确定了接收的最大长度以及实际写入的长度
+        void* iov_base; // 指向的缓冲区的指针（存放的是readv接收的数据，或是writev将要发送的数据）
+        size_t iov_len; // 缓冲区长度（读：最多能接收多少字节，写：实际要发送多少字节）
     }
     */
 
@@ -34,48 +34,47 @@ ssize_t Buffer::readFd(int fd, int* saveErrno)
     // 第一块缓冲区，指向buffer可写空间
     vec[0].iov_base = begin() + writerIndex_;
     vec[0].iov_len = writable;
-    // 第二块缓冲区，指向备用栈空间 extrabuf，用于扩展容量
+    // 第二块缓冲区，指向备用栈空间 extrabuf
     vec[1].iov_base = extrabuf;
     vec[1].iov_len = sizeof(extrabuf);
 
     // when there is enough space in this buffer, don't read into extrabuf
     // when extrabuf is used, we read 128k-1 bytes at most
-    // 这里之所以说最多128k-1字节，是因为若writable为64k-1，那么需要两个缓冲区 第一个64k-1 第二个64k 所以最多128k-1
-    // 如果第一个缓冲区>=64k 那就只采用一个缓冲区 而不使用栈空间extrabuf[65536]的内容
-    
+
     // 判断是否使用第二个缓冲区 extrabuf
     const int iovcnt = (writable < sizeof(extrabuf)) ? 2 : 1;
 
     // 执行系统调用 readv，从fd中读取数据 --> vec描述的缓冲区
     const ssize_t n = ::readv(fd, vec, iovcnt); // readv 会自动地按顺序写入多个缓冲区，返回读取字节数 n
-    if (n < 0) // 读取失败，保存错误码
+    if (n < 0)              // 读取失败，保存错误码
     {
         *saveErrno = errno; 
     }
-    else if (n <= writable) // buffer_可写缓冲区足够存储读出来的数据，直接更新指针
+    else if (n <= writable) // 读取的数据量 < buffer可写空间，说明所有数据都写进buffer了，直接更新指针
     {
         writerIndex_ += n; 
     }
-    else // // buffer_ 空间不够，部分数据写入了 extrabuf
+    else                    // n > writable，说明部分数据写入了 extrabuf
     {
         writerIndex_ = buffer_.size();  // buffer_ 可写部分已用满
-        append(extrabuf, n - writable); // 对buffer_扩容，并将extrabuf存储的另一部分数据追加到buffer_
+        append(extrabuf, n - writable); // 将extrabuf存储的另一部分数据追加到buffer_，自动扩容
     }
     
     return n;  // 返回读取的总字节数（含 extrabuf 中数据）
 }
 
 
-// inputBuffer_.readFd表示将对端数据读到inputBuffer_中，移动writerIndex_指针
-// outputBuffer_.writeFd标示将数据写入到outputBuffer_中，从readerIndex_开始，可以写readableBytes()个字节
+// inputBuffer_.readFd 表示将对端数据读到inputBuffer_中，移动writerIndex_指针
+// outputBuffer_.writeFd 表示将数据写入到outputBuffer_中，从readerIndex_开始，可以写readableBytes()个字节
 
 // 向fd写入数据   buffer-->fd
 ssize_t Buffer::writeFd(int fd, int* saveErrno)
 {
-    ssize_t n = ::write(fd, peek(), readableBytes()); // 从 peek() 开始写 readableBytes() 字节到 fd
+    ssize_t n = ::write(fd, peek(), readableBytes()); // 从 peek() 起始地址开始，向fd写入readableBytes()个字节
     if (n < 0)
     {
-        *saveErrno = errno;
+        *saveErrno = errno; // 写入失败，保存错误码
     }
+
     return n; // 返回写入的字节数
 }

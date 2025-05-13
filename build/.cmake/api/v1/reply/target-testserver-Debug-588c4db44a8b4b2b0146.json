@@ -111,7 +111,7 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "../../lib/libmuduo_learning.so",
+				"fragment" : "../lib/libmuduo_learning.so",
 				"role" : "libraries"
 			},
 			{
