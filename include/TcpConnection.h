@@ -20,7 +20,7 @@ class Socket;
  */
 
 
-class TcpConnection
+class TcpConnection : noncopyable, public std::enable_shared_from_this<TcpConnection>
 {
 public:
     TcpConnection(EventLoop* loop,
@@ -31,40 +31,44 @@ public:
 
     ~TcpConnection();
 
-
+    // 获取EventLoop
     EventLoop* getLoop() const { return loop_; }
+    // 获取连接名称
     const std::string& name() const { return name_; }
+    // 获取地址
     const InetAddress& localAddress() const { return localAddr_; }
     const InetAddress& peerAddress() const { return peerAddr_; }
-
+    // 获取连接状态
     bool connected() const { return state_ == kConnected; }
 
     // 发送数据
     void send(const std::string& buf);
     void sendFile(int fileDescriptor, off_t offset, size_t count);
 
-    // 关闭半连接
+    // 主动关闭连接（半关闭连接）
     void shutdown();
 
-    void setConnectionCallback(const ConnectionCallback& cb)        
+    // 用户设置回调
+    void setConnectionCallback(const ConnectionCallback& cb)        // 连接建立/断开      
     { connectionCallback_ = cb; }
-    void setMessageCallback(const MessageCallback& cb)              
+    void setMessageCallback(const MessageCallback& cb)              // 接收消息
     { messageCallback_ = cb; }
-    void setWriteCompleteCallback(const WriteCompleteCallback& cb)  
+    void setWriteCompleteCallback(const WriteCompleteCallback& cb)  // 发送完成
     { writeCompleteCallback_ = cb; }
-    void setCloseCallback(const CloseCallback& cb)                  
+    void setCloseCallback(const CloseCallback& cb)                  // 高水位回调
     { closeCallback_ = cb; }
     void setHighWaterMarkCallback(const HighWaterMarkCallback& cb, size_t highWaterMark) 
-    { highWaterMarkCallback_ = cb; highWaterMark_ = highWaterMark; }
+    { highWaterMarkCallback_ = cb; highWaterMark_ = highWaterMark; }// 连接关闭时
 
-    // 连接建立
+    // 连接建立后调用
     void connectEstablished();
 
-    // 连接销毁
+    // 连接销毁前调用
     void connectDestroyed();
 
 
 private:
+    // 连接状态
     enum StateE
     {
         kDisconnected, // 已经断开连接
@@ -75,24 +79,26 @@ private:
 
     void setState(StateE state) { state_ = state; }
 
-    void handleRead(Timestamp receiveTime);
+    // 响应Channel中的事件
+    void handleRead(Timestamp receiveTime); // 处理读事件
     void handleWrite(); // 处理写事件
-    void handleClose();
-    void handleError();
+    void handleClose(); // 处理连接关闭事件
+    void handleError(); // 处理错误事件
 
+    // 在EventLoop中发送数据
     void sendInLoop(const void* date, size_t len);
-    void shutdownInLoop();
     void sendFileInLoop(int fileDescriptor, off_t offset, size_t count);
+    // 在EventLoop中关闭连接
+    void shutdownInLoop();
+    
      
-     
-    EventLoop *loop_; // 这里是baseloop还是subloop由TcpServer中创建的线程数决定
-                      // 若为多Reactor 该loop_指向subloop 若为单Reactor 该loop_指向baseloop
-    const std::string name_;
-    std::atomic_int state_;
-    bool reading_; // 连接是否在监听读事件
+    EventLoop *loop_; // 所属EventLoop  若为多Reactor 该loop_指向subloop 若为单Reactor 该loop_指向baseloop
+    const std::string name_;    // 连接名称
+    std::atomic_int state_;     // 连接状态 (StateE)
+    bool reading_;              // 连接是否在监听读事件
 
     // Socket Channel 这里和Acceptor类似  Acceptor => mainLoop   TcpConnection => subLoop
-    std::unique_ptr<Socket> socket_;
+    std::unique_ptr<Socket> socket_;    
     std::unique_ptr<Channel> channel_;
 
     const InetAddress localAddr_; // 服务端地址 (本地地址)
@@ -105,6 +111,7 @@ private:
     WriteCompleteCallback writeCompleteCallback_; // 消息发送完成以后的回调
     HighWaterMarkCallback highWaterMarkCallback_; // 高水位回调
     CloseCallback closeCallback_;                 // 关闭连接的回调
+    
     size_t highWaterMark_; // 高水位阈值
 
     // 数据缓冲区
