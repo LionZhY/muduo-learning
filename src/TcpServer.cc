@@ -20,9 +20,9 @@ TcpServer::TcpServer(EventLoop* loop,              // mainLoop指针
                      const InetAddress& listenAddr,// 监听地址
                      const std::string& nameArg,   // 服务器名称
                      Option option = kNoReusePort) // 端口复用选项
-    : loop_(CheckLoopNotNull(loop))  // mainLoop(检查是否空)
+    : loop_(CheckLoopNotNull(loop))  
     , ipPort_(listenAddr.toIpPort()) // 监听地址 IP:Port
-    , name_(nameArg) // 服务器名称
+    , name_(nameArg) 
     , acceptor_(new Acceptor(loop, listenAddr, option == kNoReusePort)) // 创建Acceptor对象
     , threadPool_(new EventLoopThreadPool(loop, name_)) // 初始化线程池对象
     , connectionCallback_() 
@@ -104,12 +104,11 @@ void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
     InetAddress localAddr(local); // 将获取的 sockaddr_in 包装成 InetAddress 类对象
     
     // 创建TcpConnectionPtr智能指针 conn
-    TcpConnectionPtr conn( new TcpConnection( // TcpConnection
-                                        ioLoop,     
-                                        connName,   
-                                        sockfd,
-                                        localAddr,  // 服务端地址（本地地址）
-                                        peerAddr) );// 客户端地址           
+    TcpConnectionPtr conn( new TcpConnection(ioLoop,     
+                                             connName,   
+                                             sockfd,
+                                             localAddr,  // 服务端地址（本地地址）
+                                             peerAddr) );// 客户端地址           
 
     // 将连接加入Tcp连接的map中
     connections_[connName] = conn; // <连接名，TcpConnectionPtr>

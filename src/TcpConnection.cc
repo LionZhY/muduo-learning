@@ -1,13 +1,13 @@
-#include <functional>
-#include <string>
+#include <functional>       // std::bind绑定回调函数
+#include <string>           
 #include <errno.h>
-#include <sys/types.h>
+#include <sys/types.h>      // 系统类型 如ssize_t
 #include <sys/socket.h>
 #include <string.h>
-#include <netinet/tcp.h>
-#include <sys/sendfile.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <netinet/tcp.h>    // Tcp相关选项
+#include <sys/sendfile.h>   // 零拷贝sendfile接口
+#include <fcntl.h>          // 提供open函数以及文件打开的flag
+#include <unistd.h>         // close read write函数
 
 #include "TcpConnection.h"
 #include "Logger.h"
@@ -15,6 +15,7 @@
 #include "Channel.h"
 #include "EventLoop.h"
 
+// 辅助函数 检查EventLoop是否为null
 static EventLoop* CheckLoopNotNull(EventLoop* loop)
 {
     if (loop == nullptr)
@@ -25,38 +26,38 @@ static EventLoop* CheckLoopNotNull(EventLoop* loop)
 }
 
 
-TcpConnection::TcpConnection(EventLoop* loop,
-                             const std::string& nameArg,
-                             int sockfd,
-                             const InetAddress& localAddr,
-                             const InetAddress& peerAddr)
-    : loop_(CheckLoopNotNull(loop))
-    , name_(nameArg)
-    , state_(kConnecting)
-    , reading_(true)
-    , socket_(new Socket(sockfd))
-    , channel_(new Channel(loop, sockfd))
-    , localAddr_(localAddr)
-    , peerAddr_(peerAddr)
-    , highWaterMark_(64 * 1024 * 1024) // 64M
+TcpConnection::TcpConnection(EventLoop* loop,               // 连接所属的EventLoop
+                             const std::string& nameArg,    // 连接名
+                             int sockfd,                    // 连接对应的sockfd
+                             const InetAddress& localAddr,  // 本地地址（服务器端）
+                             const InetAddress& peerAddr)   // 对端地址（客户端）
+    : loop_(CheckLoopNotNull(loop)) 
+    , name_(nameArg)                
+    , state_(kConnecting)           // 初始状态为正在建立连接
+    , reading_(true)                // 默认监听可读事件
+    , socket_(new Socket(sockfd))   // sockfd封装成socket对象
+    , channel_(new Channel(loop, sockfd)) // 为该连接创建channel fd与loop绑定
+    , localAddr_(localAddr) 
+    , peerAddr_(peerAddr)   
+    , highWaterMark_(64 * 1024 * 1024) // 写缓冲区高水位标记 64M
 
 {
-    // 下面给channel设置相应的回调函数 poller给channel通知感兴趣的事件发生了 channel会回调相应的回调
-    channel_->setReadCallback(
-        std::bind(&TcpConnection::handleRead, this, std::placeholders::_1) );
-    channel_->setWriteCallback(
-        std::bind(&TcpConnection::handleWrite, this) );
-    channel_->setcloseCallback(
-        std::bind(&TcpConnection::handleClose, this) );
-    channel_->setErrorCallback(
-        std::bind(&TcpConnection::handleError, this) );
+    // 设置channel相应事件的回调函数  当sockfd上事件发生 -> 回调TcpConnection::handlexxx
+    channel_->setReadCallback ( std::bind(&TcpConnection::handleRead, this, std::placeholders::_1) ); // 读事件回调 有数据可读时触发
+    channel_->setWriteCallback( std::bind(&TcpConnection::handleWrite, this) ); // 写事件回调 发送缓冲区可写
+    channel_->setcloseCallback( std::bind(&TcpConnection::handleClose, this) ); // 关闭事件回调 对端关闭连接
+    channel_->setErrorCallback( std::bind(&TcpConnection::handleError, this) ); // 错误事件回调 
 
+    // 记录连接名，fd
     LOG_INFO("TcpConnection::ctor[%s] at fd=%d\n", name_.c_str(), sockfd);
+    
+    // 启用TCP保活机制 Socket::setKeepAlive()
     socket_->setKeepAlive(true);
 }
 
 TcpConnection::~TcpConnection()
 {
+    // 析构时记录日志 不做额外资源释放，具体资源释放由shared_ptr和Channel::remove()管理
     LOG_INFO("TcpConnection::dtor[%s] at fd=%d state=%d\n", 
               name_.c_str(), channel_->fd(), (int)state_);
 }
@@ -67,11 +68,12 @@ void TcpConnection::send(const std::string& buf)
 {
     if (state_ == kConnected)
     {
+        // 若当前线程是所属 EventLoop，则直接调用 sendInLoop()
         if (loop_->isInLoopThread()) // 这种是对于单个reactor的情况，用户调用conn->send时，loop_即为当前线程
         {
             sendInLoop(buf.c_str(), buf.size());
         }
-        else 
+        else // 否则，通过 runInLoop() 将任务加入事件循环队列，由 IO 线程执行
         {
             loop_->runInLoop(
                 std::bind(&TcpConnection::sendInLoop, this, buf.c_str(), buf.size()));
