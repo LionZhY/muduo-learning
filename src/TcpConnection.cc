@@ -57,21 +57,23 @@ TcpConnection::TcpConnection(EventLoop* loop,               // 连接所属的Ev
 
 TcpConnection::~TcpConnection()
 {
-    // 析构时记录日志 不做额外资源释放，具体资源释放由shared_ptr和Channel::remove()管理
+    // 只记录日志 不做额外资源释放，具体资源释放由shared_ptr和Channel::remove()管理
     LOG_INFO("TcpConnection::dtor[%s] at fd=%d state=%d\n", 
-              name_.c_str(), channel_->fd(), (int)state_);
+              name_.c_str(), channel_->fd(), (int)state_); // 连接名 fd 连接状态
 }
 
 
-// 发送数据
+// 发送数据  选择是在当前线程直接发送，还是将发送任务转移到所属的 I/O 线程执行
 void TcpConnection::send(const std::string& buf)
 {
-    if (state_ == kConnected)
-    {
-        // 若当前线程是所属 EventLoop，则直接调用 sendInLoop()
-        if (loop_->isInLoopThread()) // 这种是对于单个reactor的情况，用户调用conn->send时，loop_即为当前线程
+    // 只有在连接建立完成，双方互通，才能发送数据
+    if (state_ == kConnected) 
+    {  
+        // 检查当前线程是否就是这个连接所属的 EventLoop 所在线程
+        if (loop_->isInLoopThread()) 
         {
             sendInLoop(buf.c_str(), buf.size());
+            // 这种是对于单个reactor的情况，用户调用conn->send时，loop_即为当前线程
         }
         else // 否则，通过 runInLoop() 将任务加入事件循环队列，由 IO 线程执行
         {
@@ -79,10 +81,17 @@ void TcpConnection::send(const std::string& buf)
                 std::bind(&TcpConnection::sendInLoop, this, buf.c_str(), buf.size()));
         }
     }
+
+    // state_ != kConnected 连接未建立或已关闭，不做任何处理
 }
-// 新增的零拷贝发送函数
-void TcpConnection::sendFile(int fileDescriptor, off_t offset, size_t count)
+
+
+// 发送文件内容  线程选择
+void TcpConnection::sendFile(int fileDescriptor, // 文件描述符，必须是一个已打开的普通文件
+                             off_t offset, // 文件起始偏移
+                             size_t count) // 要发送的字节数
 {
+    // 只有在连接已建立（state_ == kConnected）的状态下，才能发送数据
     if (connected())
     {
         if (loop_->isInLoopThread()) // 判断当前线程是否是loop循环的线程
@@ -92,40 +101,41 @@ void TcpConnection::sendFile(int fileDescriptor, off_t offset, size_t count)
         else // 如果不是 则唤醒运行这个TcpConnection的线程执行loop循环
         {
             loop_->runInLoop(
-                std::bind(&TcpConnection::sendFileInLoop, shared_from_this(), 
+                std::bind(&TcpConnection::sendFileInLoop, shared_from_this(), // shared_from_this() 保证当前对象在任务执行前不会被销毁
                           fileDescriptor, offset, count));
         }
     }
-    else 
+    else // 连接未建立 记录错误日志
     {
         LOG_ERROR("TcpConnection::sendFile - not connected");
     }
 }
 
-// 关闭半连接
-void TcpConnection::shutdown()
+// 半关闭连接
+void TcpConnection::shutdown() // 关闭写端，不再发送数据，但仍可接收数据
 {
+    // 确保连接状态为 kConnected（已建立连接）
     if (state_ == kConnected)
     {
-        setState(kDisconnecting);
-        loop_->runInLoop(std::bind(&TcpConnection::shutdownInLoop, this));
+        setState(kDisconnecting); // 修改连接状态为正在关闭
+        loop_->runInLoop(std::bind(&TcpConnection::shutdownInLoop, this)); // 将shutdownInLoop()提交到所属线程的事件循环
     }
 }
 
 
-// 连接建立
+// 连接建立后 由 TcpServer 调用
 void TcpConnection::connectEstablished()
 {
-    setState(kConnected);
-    channel_->tie(shared_from_this());
-    channel_->enableReading(); // 向poller注册channel的EPOLLIN事件
+    setState(kConnected); // 修改连接状态为 已连接
+    channel_->tie(shared_from_this()); // 将当前连接的shared_ptr绑定给该连接的Channel
+    channel_->enableReading(); // 向poller注册该连接的fd的读事件 EPOLLIN
 
-    // 新连接建立 执行回调
-    connectionCallback_(shared_from_this());
+    // 执行用户注册的“连接建立”回调
+    connectionCallback_(shared_from_this()); // 将自身作为参数传入
 }
 
 
-// 连接销毁
+// 连接销毁前调用
 void TcpConnection::connectDestroyed()
 {
     if (state_ == kConnected)

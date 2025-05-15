@@ -21,7 +21,7 @@ class Socket;
 
 
 class TcpConnection : noncopyable, 
-                      public std::enable_shared_from_this<TcpConnection> // 继承 std::enable_shared_from_this  允许对象内部获取 shared_ptr<TcpConnection>
+                      public std::enable_shared_from_this<TcpConnection> // 继承enable_shared_from_this 允许对象内部获取shared_ptr<TcpConnection>
 {
 public:
     TcpConnection(EventLoop* loop,
@@ -40,7 +40,7 @@ public:
     const InetAddress& localAddress() const { return localAddr_; }
     // 获取对端地址
     const InetAddress& peerAddress() const { return peerAddr_; }
-    // 获取连接状态
+    // 判断是否已连接
     bool connected() const { return state_ == kConnected; }
 
     // 发送数据
@@ -60,7 +60,10 @@ public:
     void setCloseCallback(const CloseCallback& cb)                  // 连接关闭时的回调
     { closeCallback_ = cb; }
     void setHighWaterMarkCallback(const HighWaterMarkCallback& cb, size_t highWaterMark) // 发送缓冲区达到高水位时的回调
-    { highWaterMarkCallback_ = cb; highWaterMark_ = highWaterMark; }
+    { 
+        highWaterMarkCallback_ = cb; 
+        highWaterMark_ = highWaterMark; 
+    }
 
     // 连接建立后 由 TcpServer 调用
     void connectEstablished();

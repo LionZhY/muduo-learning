@@ -84,8 +84,8 @@ void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
     EventLoop* ioLoop = threadPool_->getNextLoop(); 
 
     // 构造唯一的连接名称connName 如 "MyServer-127.0.0.1:8080#1"
-    char buf[64] = {0}; // 构造连接名后缀，监听地址#连接计数 如：-127.0.0.1:8000#1
-    snprintf(buf, sizeof buf, "-%s#%d", ipPort_.c_str(), nextConnId_); 
+    char buf[64] = {0}; 
+    snprintf(buf, sizeof buf, "-%s#%d", ipPort_.c_str(), nextConnId_); // 监听地址#连接计数 如：-127.0.0.1:8000#1
     ++nextConnId_; // 连接ID自增 
     std::string connName = name_ + buf; // 拼接 服务器名称-127.0.0.1:8080#1
 
@@ -120,7 +120,7 @@ void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
     conn->setCloseCallback(
         std::bind(&TcpServer::removeConnection, this, std::placeholders::_1) ); // 关闭连接时的回调
     
-    // 将连接建立的后续工作封装成一个任务，扔进 subLoop 的事件循环中去执行
+    // 将连接建立的后续工作TcpConnection::connectEstablished封装成一个任务，扔进 subLoop 的事件循环中去执行
     ioLoop->runInLoop(
         std::bind(&TcpConnection::connectEstablished, conn) );
 }
