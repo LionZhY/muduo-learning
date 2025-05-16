@@ -126,44 +126,45 @@ void TcpConnection::shutdown() // 关闭写端，不再发送数据，但仍可�
 // 连接建立后 由 TcpServer 调用
 void TcpConnection::connectEstablished()
 {
-    setState(kConnected); // 修改连接状态为 已连接
+    setState(kConnected);              // 修改连接状态为 已连接
     channel_->tie(shared_from_this()); // 将当前连接的shared_ptr绑定给该连接的Channel
-    channel_->enableReading(); // 向poller注册该连接的fd的读事件 EPOLLIN
+    channel_->enableReading();         // 向poller注册该连接的fd的读事件 EPOLLIN
 
-    // 执行用户注册的“连接建立”回调
-    connectionCallback_(shared_from_this()); // 将自身作为参数传入
+    connectionCallback_(shared_from_this()); // 通知用户连接建立
 }
 
 
-// 连接销毁前调用
+// 连接销毁前调用 由 TcpServer 调用
 void TcpConnection::connectDestroyed()
 {
     if (state_ == kConnected)
     {
-        setState(kDisconnected);
-        channel_->disableAll(); // 把channel的所有感兴趣事件从poller中删除掉
-        connectionCallback_(shared_from_this());
+        setState(kDisconnected); // 连接状态设置为已断开
+        channel_->disableAll();  // 清除 Poller 中该 channel 对象注册的所有感兴趣事件
+        connectionCallback_(shared_from_this()); // 通知用户连接销毁
     }
-    channel_->remove(); // 把channel从poller中删除掉
+    channel_->remove(); // 从 Poller 中移除 Channel
 }
 
 
-// 处理读事件
+/* handlexxx() => Channel::setReadCallback()作为Channel检测到事件后的回调 => Channel::handleEventWithGuard()中被调用 */
+
+// 处理读事件 fd-->inputbuffer  就是Channel 检测到 EPOLLIN（可读事件） 后的回调
 // 读是相对服务器而言的，当对端客户有数据到达，服务器端检测EPOLLIN，就会触发该fd上的回调，handleRead读走对端发来的数据
 void TcpConnection::handleRead(Timestamp receiveTime) 
 {
     int savedErrno = 0;
-    ssize_t n = inputBuffer_.readFd(channel_->fd(), &savedErrno);
-    if (n > 0) // 有数据到达
+    ssize_t n = inputBuffer_.readFd(channel_->fd(), &savedErrno); // fd--> inputbuffer
+    if (n > 0) // 有数据被读取成功
     {
-        // 已建立连接的用户有可读事件发生了 调用用户传入的回调操作onMessage shared_from_this就是获取了TcpConnection的智能指针
+        // 已建立连接的用户有可读事件发生了 调用用户传入的消息处理回调
         messageCallback_(shared_from_this(), &inputBuffer_, receiveTime);
     }
-    else if (n == 0) // 客户端断开
+    else if (n == 0) // 对端关闭连接 处理连接关闭
     {
         handleClose();
     }
-    else // 出错了
+    else // n < 0 出错了 处理错误流程
     {
         errno = savedErrno;
         LOG_ERROR("TcpConnection::handleRead");
@@ -171,36 +172,36 @@ void TcpConnection::handleRead(Timestamp receiveTime)
     }
 }
 
-// 处理写事件
+// 处理写事件  outbuffer --> fd 
 void TcpConnection::handleWrite() 
 {
-    if (channel_->isWriting())
+    if (channel_->isWriting()) // 判断当前Channel是否监听写事件 EPOLLOUT
     {
         int savedErrno = 0;
-        ssize_t n = outputBuffer_.writeFd(channel_->fd(), &savedErrno);
-        if (n > 0)
+        ssize_t n = outputBuffer_.writeFd(channel_->fd(), &savedErrno); // outbuffer --> fd 
+        if (n > 0) // 写入成功
         {
-            outputBuffer_.retrieve(n); // 从缓冲区中读取readable区域的数据 移动readerIndex下标
-            if (outputBuffer_.readableBytes() == 0)
+            outputBuffer_.retrieve(n); // 从缓冲区中读取readable区域的数据 移动readerIndex_
+            // 如果待发送的数据已经全部写完
+            if (outputBuffer_.readableBytes() == 0) 
             {
-                channel_->disableWriting();
-                if (writeCompleteCallback_)
+                channel_->disableWriting();  // 关闭写事件监听 写缓冲区已空，不再需要监听 EPOLLOUT
+                if (writeCompleteCallback_)  // 若设置了写完成回调 投递到所属 EventLoop 中延迟执行
                 {
-                    // TcpConnection对象在其所在的subLoop中 向pendingFunctors_中加入回调
                     loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
                 }
-                if (state_ == kDisconnecting)
+                if (state_ == kDisconnecting) // 若处于“半关闭”状态，此时满足!channel_->isWriting()，真正关闭连接
                 {
-                    shutdownInLoop(); // 在当前所属loop中把TcpConnection删除
+                    shutdownInLoop();
                 }
             }
         }
-        else
+        else // n <= 0 写入失败，记录错误日志
         {
             LOG_ERROR("TcpConnection::handleWrite");
         }
     }
-    else 
+    else // 当前Channel没有监听写事件却调用了 handleWrite()，是异常情况
     {
         LOG_ERROR("TcpConnection fd=%d is down, no more writing", channel_->fd());
     }
@@ -211,12 +212,14 @@ void TcpConnection::handleWrite()
 void TcpConnection::handleClose() 
 {
     LOG_INFO("TcpConneciton::handleClose fd=%d state=%d\n", channel_->fd(), (int)state_);
-    setState(kDisconnected);
-    channel_->disableAll();
+    setState(kDisconnected);// 设置状态为已关闭，不再收发数据
+    channel_->disableAll(); // 关闭所有感兴趣的事件
 
-    TcpConnectionPtr connPtr(shared_from_this());
-    connectionCallback_(connPtr); // 连接回调
-    closeCallback_(connPtr);      // 执行关闭连接的回调 执行的是TcpServer::removeConnection回调方法 must be the last line
+    TcpConnectionPtr connPtr(shared_from_this()); // 当前连接对象的 shared_ptr
+    connectionCallback_(connPtr); // 执行连接销毁的回调（用户注册）
+    
+    // must be the last line 必须放在最后，因为closeCallback_内部有可能直接删除TcpConnection
+    closeCallback_(connPtr); // 绑定的是TcpServer::removeConnection回调方法 移除连接 删除Channel 
 }
 
 

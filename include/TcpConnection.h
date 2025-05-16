@@ -50,7 +50,7 @@ public:
     // 主动关闭连接（半关闭连接）
     void shutdown();
 
-    // 用户设置回调
+    // 用户设置回调 TcpServer中设置
     void setConnectionCallback(const ConnectionCallback& cb)        // 新连接建立时的回调      
     { connectionCallback_ = cb; }
     void setMessageCallback(const MessageCallback& cb)              // 消息到达时的回调
@@ -113,11 +113,11 @@ private:
 
     // 这些回调TcpServer也有 由 TcpServer 传递并设置到 TcpConnection 中
     // 用户写入TcpServer注册 => TcpServer将注册的回调传给TcpConnection => TcpConnection再将回调注册到Channel中
-    ConnectionCallback connectionCallback_;       // 有新连接时的回调
+    ConnectionCallback connectionCallback_;       // 连接建立/销毁的回调（通知用户连接已建立或销毁）
     MessageCallback messageCallback_;             // 有读写消息时的回调
     WriteCompleteCallback writeCompleteCallback_; // 消息发送完成以后的回调
     HighWaterMarkCallback highWaterMarkCallback_; // 高水位回调
-    CloseCallback closeCallback_;                 // 关闭连接的回调
+    CloseCallback closeCallback_;                 // 关闭连接的回调（Channel关闭事件，通知TcpServer删除该连接）
     
     size_t highWaterMark_; // 高水位阈值 当输出缓冲区大小超过该值时会触发 highWaterMarkCallback_ 回调
 

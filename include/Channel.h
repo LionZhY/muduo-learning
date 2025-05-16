@@ -65,7 +65,7 @@ public:
     void disableAll()     { events_ = kNoneEvent;     update(); } // 取消监听所有事件
 
 
-    // 查询 fd 当前的事件状态
+    // 查询 fd 当前监听事件状态
     bool isNoneEvent() const { return events_ == kNoneEvent; } // 当前是否无事件监听
     bool isWriting() const   { return events_ & kWriteEvent; } // 是否监听写事件
     bool isReading() const   { return events_ & kReadEvent;  } // 是否监听读事件
