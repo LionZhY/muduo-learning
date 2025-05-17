@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <netinet/tcp.h>    // Tcp相关选项
-#include <sys/sendfile.h>   // 零拷贝sendfile接口
+#include <sys/sendfile.h>   // 提供sendfile()
 #include <fcntl.h>          // 提供open函数以及文件打开的flag
 #include <unistd.h>         // close read write函数
 
@@ -130,7 +130,8 @@ void TcpConnection::connectEstablished()
     channel_->tie(shared_from_this()); // 将当前连接的shared_ptr绑定给该连接的Channel
     channel_->enableReading();         // 向poller注册该连接的fd的读事件 EPOLLIN
 
-    connectionCallback_(shared_from_this()); // 通知用户连接建立
+    // 执行用户注册的“连接建立”回调
+    connectionCallback_(shared_from_this()); // 通知用户（业务代码层）连接建立 
 }
 
 
@@ -178,7 +179,9 @@ void TcpConnection::handleWrite()
     if (channel_->isWriting()) // 判断当前Channel是否监听写事件 EPOLLOUT
     {
         int savedErrno = 0;
-        ssize_t n = outputBuffer_.writeFd(channel_->fd(), &savedErrno); // outbuffer --> fd 
+
+        // outbuffer --> fd 
+        ssize_t n = outputBuffer_.writeFd(channel_->fd(), &savedErrno); 
         if (n > 0) // 写入成功
         {
             outputBuffer_.retrieve(n); // 从缓冲区中读取readable区域的数据 移动readerIndex_
@@ -212,31 +215,36 @@ void TcpConnection::handleWrite()
 void TcpConnection::handleClose() 
 {
     LOG_INFO("TcpConneciton::handleClose fd=%d state=%d\n", channel_->fd(), (int)state_);
-    setState(kDisconnected);// 设置状态为已关闭，不再收发数据
-    channel_->disableAll(); // 关闭所有感兴趣的事件
 
-    TcpConnectionPtr connPtr(shared_from_this()); // 当前连接对象的 shared_ptr
-    connectionCallback_(connPtr); // 执行连接销毁的回调（用户注册）
+    setState(kDisconnected);        // 设置状态为已关闭，不再收发数据
+    channel_->disableAll();         // 关闭所有感兴趣的事件
+
+    TcpConnectionPtr connPtr(shared_from_this());
+    connectionCallback_(connPtr);   // 用户设置的连接状态回调（通知用户连接状态发生变化）
     
     // must be the last line 必须放在最后，因为closeCallback_内部有可能直接删除TcpConnection
-    closeCallback_(connPtr); // 绑定的是TcpServer::removeConnection回调方法 移除连接 删除Channel 
+    closeCallback_(connPtr);        // 服务端设置的关闭连接回调 绑定TcpServer::removeConnection回调方法
 }
 
 
 // 处理错误事件
 void TcpConnection::handleError() 
 {
-    int optval;
-    socklen_t optlen = sizeof optval;
-    int err = 0;
+    int optval; // 用来存储getsockopt()返回的错误码
+    socklen_t optlen = sizeof optval; 
+    int err = 0;// 存储getsockopt()失败的错误码
+
+    // getsocket() 通过SO_ERROR选项读取Socket错误状态
     if (::getsockopt(channel_->fd(), SOL_SOCKET, SO_ERROR, &optval, &optlen) < 0 )
     {
-        err = errno;
+        err = errno; // 如果调用失败（极少），内核设置失败原因errno，使用 errno 作为错误码
     }
     else 
     {
-        err = optval;
+        err = optval;// 如果成功，说明 optval 中就是 socket 的错误码
     }
+
+    // 打印连接名 和对应的错误码
     LOG_ERROR("TcpConnection::handleError name:%s - SO_ERROR:%d\n", name_.c_str(), err);
 }
 
@@ -248,34 +256,45 @@ void TcpConnection::handleError()
 // 在EventLoop中发送数据
 void TcpConnection::sendInLoop(const void* data, size_t len)
 {
-    ssize_t nwrote = 0;
-    ssize_t remaining = len;
-    bool faultError = false;
+    ssize_t nwrote = 0;      // 实际写到Socket的字节数
+    ssize_t remaining = len; // 剩余还未写的数据长度
+    bool faultError = false; // 标记是否出现致命错误
 
-    if (state_ == kDisconnected) // 之前调用过该connection的shutdown 不能再进行发送了
+    // 若连接断开，不再发送，记录日志
+    if (state_ == kDisconnected) 
     {
         LOG_ERROR("disconnected, give up writing");
     }
 
-    // 表示channel_第一次开始写数据或者缓冲区没有待发送数据
-    if (!channel_->isWriting() && outputBuffer_.readableBytes() == 0)
+    /**
+     * sendInLoop 先尝试直接写 socket，
+     * 若未写完则将剩余数据存入 outputBuffer，并注册写事件
+     * epoll 通知 socket 可写时调用handleWrite()，继续把 outputBuffer_ 中的数据写入 socket，直到写完
+     */
+
+
+    // 如果当前 channel 没有注册写事件，且 outputBuffer_ 为空，表示可以尝试直接写 socket 
+    if (!channel_->isWriting() && outputBuffer_.readableBytes() == 0) 
     {
+        // 尝试直接将 data 写入 socket （不用缓冲区）
         nwrote = ::write(channel_->fd(), data, len);
-        if (nwrote >= 0)
+
+        if (nwrote >= 0) // 写入成功
         {
-            remaining = len - nwrote;
-            if (remaining == 0 && writeCompleteCallback_)
+            remaining = len - nwrote; // 更新剩余未写长度
+            if (remaining == 0 && writeCompleteCallback_) // 如果全部写完，且用户设置了写完成回调
             {
-                // 既然在这里数据全部发送完成，就不用再给channel设置epollout事件了
+                // 写完成回调需要在所属 EventLoop 中执行
                 loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
             }
         }
-        else // nwrote < 0
+        else // nwrote < 0 写入失败
         {
-            nwrote = 0;
-            if (errno != EWOULDBLOCK) // EWOULDBLOCK表示非阻塞情况下没有数据后的正常返回 等同于EAGAIN
+            nwrote = 0; // 写入字节数置0
+            if (errno != EWOULDBLOCK) // 若失败原因不是 “资源暂时不可用”，即真正的写错误
             {
                 LOG_ERROR("TcpConnection::sendInLoop");
+                // 如果是 EPIPE（对端已关闭写）或 ECONNRESET（对端复位连接），标记出现错误
                 if (errno == EPIPE || errno == ECONNRESET) // SIGPIPE RESET
                 {
                     faultError = true;
@@ -285,75 +304,88 @@ void TcpConnection::sendInLoop(const void* data, size_t len)
     }
 
     /**
-     * 说明当前这一次write并没有把数据全部发送出去 剩余的数据需要保存到缓冲区当中
-     * 然后给channel注册EPOLLOUT事件，Poller发现tcp的发送缓冲区有空间后会通知
-     * 相应的sock->channel，调用channel对应注册的writeCallback_回调方法，
-     * channel的writeCallback_实际上就是TcpConnection设置的handleWrite回调，
-     * 把发送缓冲区outputBuffer_的内容全部发送完成
+     * 若还有未发送的数据（remaining > 0）且没有发生严重错误：
+     * - 说明当前这一次write并没有把数据全部发送出去，剩余的数据需要保存到outputbuffer中
+     * - 然后给channel注册EPOLLOUT写事件，以便后续在 handleWrite 中继续发送
+     * 
+     * Poller发现tcp的发送缓冲区有可读空间后，通知相应的sock->channel => 调用channel对应注册的writeCallback_
+     * channel的writeCallback_就是TcpConnection设置的handleWrite，把outputBuffer_的内容全部发送
      **/
 
-     if (!faultError && remaining > 0)
-     {
-        // 目前发送缓冲区剩余的待发送的数据的长度
-        size_t oldLen = outputBuffer_.readableBytes();
-        if (oldLen + remaining >= highWaterMark_ && oldLen < highWaterMark_ && highWaterMarkCallback_)
-        {
-            loop_->queueInLoop(
-                std::bind(highWaterMarkCallback_, shared_from_this(), oldLen + remaining));
-        }
-        outputBuffer_.append((char*)data + nwrote, remaining);
-        if (!channel_->isWriting())
-        {
-            channel_->enableWriting(); // 这里一定要注册channel的写事件 否则poller不会给channel通知epollout
-        }
-     }
+    if (!faultError && remaining > 0)
+    {
+       size_t oldLen = outputBuffer_.readableBytes(); // 原先outputbuffer剩余待发送的数据的长度
 
+       // 如果写入后超过了高水位线，且原本没超过，则触发高水位回调
+       if (oldLen + remaining >= highWaterMark_ && oldLen < highWaterMark_ && highWaterMarkCallback_)
+       {
+           loop_->queueInLoop(
+               std::bind(highWaterMarkCallback_, shared_from_this(), oldLen + remaining));
+       }
+
+       // 将未写完的数据(data + nwrote之后长remianing的数据) 追加到 outputbuffer
+       outputBuffer_.append((char*)data + nwrote, remaining);
+
+       // 如果之前没有注册写事件，现在需要注册
+       if (!channel_->isWriting())
+       {
+           channel_->enableWriting(); 
+           // 注册写事件，等待 poller 通知 socket 可写时执行 handleWrite
+           // 这里一定要注册channel的写事件 否则poller不会给channel通知epollout
+       }
+    }
+    
 }
 
 
 // 在EventLoop中执行sendFile
-void TcpConnection::sendFileInLoop(int fileDescriptor, off_t offset, size_t count)
+void TcpConnection::sendFileInLoop( int fileDescriptor, // 要发送的源文件的fd
+                                    off_t offset,       // 源文件中的偏移量，从offset开始发送
+                                    size_t count)       // 最多发送多少字节
 {
-    ssize_t bytesSent = 0;      // 发送了多少字节数
-    ssize_t remaining = count;  // 还要发送多少数据
-    bool faultError = false; // 错误的标志位
+    ssize_t bytesSent = 0;      // 实际发送的字节数
+    ssize_t remaining = count;  // 还有多少字节要发送（初始为全部）
+    bool faultError = false;    // 是否发生了致命错误
 
-    if (state_ == kDisconnecting) // 表示此时连接已经断开 就不需要发送数据了
+    // 表示此时连接已经断开 就不需要发送数据了
+    if (state_ == kDisconnecting) 
     {
         LOG_ERROR("disconnected, give up writing");
         return;
     }
 
-    // 表示channel第一次开始写数据或者outputBuffer缓冲区中没有数据
+    // 当前没有监听写事件，且 outputBuffer_ 中没有待发送的数据
     if (!channel_->isWriting() && outputBuffer_.readableBytes() == 0)
     {
-        bytesSent = sendfile(socket_->fd(), fileDescriptor, &offset, remaining);
-        if (bytesSent >= 0)
+        // 调用sendfile 系统调用  fileDescriptor指向的文件内容 --> socket fd
+        bytesSent = sendfile(socket_->fd(), fileDescriptor, &offset, remaining); 
+
+        if (bytesSent >= 0) // 成功发送 bytesSent字节
         {
-            remaining -= bytesSent;
+            remaining -= bytesSent; 
+            // 如果全部写完，并设置了写完成回调，投递到所属EventLoop中执行
             if (remaining == 0 && writeCompleteCallback_)
             {
-                // remaining为0 意味着数据正好全部发送完 就不需要给其设置写事件的监听
                 loop_->queueInLoop(std::bind(writeCompleteCallback_, shared_from_this()));
             }
         }
-        else // bytesSend < 0
+        else // bytesSend < 0 发送失败
         {
-            if (errno != EWOULDBLOCK) // 如果是非阻塞没有数据返回错误这个是正常现象 等同于EAGAIN 否则就异常情况
+            if (errno != EWOULDBLOCK) // 如果是非阻塞 socket 的正常现象（写缓冲区满）否则就异常情况
             {
                 LOG_ERROR("TcpConneciton::sendFileInLoop");
             }
-            if (errno == EPIPE || errno == ECONNRESET)
+            if (errno == EPIPE || errno == ECONNRESET) // EPIPE（写端对方已关闭）或 ECONNRESET（连接被重置）
             {
                 faultError = true;
             }
         }
     }
 
-    // 处理剩余数据
+    // 如果还有剩余数据，且没有致命错误
     if (!faultError && remaining > 0)
     {
-        // 继续发送剩余数据
+        // 递归地将 sendFileInLoop 继续投递进 EventLoop 中处理
         loop_->queueInLoop(
             std::bind(&TcpConnection::sendFileInLoop, shared_from_this(), fileDescriptor, offset, remaining));
     }
@@ -361,11 +393,14 @@ void TcpConnection::sendFileInLoop(int fileDescriptor, off_t offset, size_t coun
 }
 
 
-// 在EventLoop中关闭连接
+// 在EventLoop中关闭连接写端
 void TcpConnection::shutdownInLoop()
 {
-    if (!channel_->isWriting()) // 说明当前outputBuffer_的数据全部向外发送完成
+    // Channel没有在监听写事件 说明当前outputBuffer_的数据全部向外发送完成，可以关闭写端
+    if (!channel_->isWriting()) 
     {
-        socket_->shutdownWrite();
+        socket_->shutdownWrite(); // 调用Socket封装的 shutdown(SHUT_WR)，关闭写端，触发半关闭
     }
+
+    // 如果channel还在监听 EPOLLOUT 写事件，表示还有数据未写入 socket，不能立即关闭写端。
 }

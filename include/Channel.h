@@ -70,7 +70,7 @@ public:
     bool isWriting() const   { return events_ & kWriteEvent; } // 是否监听写事件
     bool isReading() const   { return events_ & kReadEvent;  } // 是否监听读事件
 
-
+ 
     // Poller内部索引管理
     int index()             { return index_; } // index_在Poller里用于标记Channel
     void set_index(int idx) { index_ = idx; };
