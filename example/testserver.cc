@@ -3,6 +3,14 @@
 #include "TcpServer.h"
 #include "Logger.h"
 
+/**
+ * 实现一个典型的回显服务器 EchoServer ：
+ * 客户端发送消息 --> onMessage触发 服务器收到消息 --> 服务器把消息原样再发送回客户端Socket --> 客户端从Socket读取
+ * 
+ * 回显服务器不用于实际业务，主要用于验证测试：网络通信功能，检查TCP连接
+ */
+
+
 // 自定义的服务器类 封装TcpServer
 class EchoServer
 {
@@ -51,7 +59,7 @@ private:
     void onMessage(const TcpConnectionPtr& conn, Buffer* buf, Timestamp time)
     {
         /* 回显 客户端发来什么，就立即原样发回*/
-        std::string msg = buf->retrieveAllAsString(); // 接收缓冲区内容提取未字符串，同时清空buffer
+        std::string msg = buf->retrieveAllAsString(); // 接收缓冲区内容提取为字符串，同时清空buffer
         conn->send(msg); // 将接收的消息原样发送回客户端
         // conn->shutdown()  // 关闭写端  底层相应EPOLLHUP => 执行closeCallbak_
     }
