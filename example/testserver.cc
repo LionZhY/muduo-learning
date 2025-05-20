@@ -21,16 +21,20 @@ public:
         : server_(loop, addr, name)
         , loop_(loop)
     {
-        // 注册回调：有新连接或连接断开
+        // 设置连接建立/断开的回调  onConnection -> TcpServer
         server_.setConnectionCallback( 
-            std::bind(&EchoServer::onConnection, this, std::placeholders::_1) );
+            std::bind(&EchoServer::onConnection, this, 
+                      std::placeholders::_1) ); // 连接指针TcpConnectionPtr
         
-        // 注册回调：有新数据到达时
+        // 设置消息到达的回调  onMessage -> TcpServer
         server_.setMessageCallback(    
-            std::bind(&EchoServer::onMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3) );;
+            std::bind(&EchoServer::onMessage, this, 
+                      std::placeholders::_1,    // 连接指针TcpConnectionPtr
+                      std::placeholders::_2,    // 接收buffer
+                      std::placeholders::_3) ); // 时间戳Timestamp 表示接收到数据的时间
         
-        // 设置合适的subLoop线程数量
-        server_.setThreadNum(3); // 即会有 1 个主 IO 线程 + 3 个 subloop
+        // 设置subLoop线程数量
+        server_.setThreadNum(3); // 设置3 个 subloop线程，即1个mainLoop + 3个subLoop
     }
 
     // 启动服务器
@@ -72,7 +76,8 @@ private:
 int main()
 {
     EventLoop loop;         // 创建mainLoop
-    InetAddress addr(8080); // 创建监听地址 监听本地8080端口
+    InetAddress addr(8080); // 创建监听地址 等价于 InetAddress("0.0.0.0", 8080)
+                            // 表示监听本机上的所有网络接口（IP地址）的 8080 端口
 
     EchoServer server(&loop, addr, "EchoServer"); // 构造EchoServer对象
 
