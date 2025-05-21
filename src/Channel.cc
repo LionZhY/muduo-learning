@@ -53,16 +53,15 @@ void Channel::tie(const std::shared_ptr<void> &obj) // tie_观察传进来的智
 // 当Channel关注的事件改变时，调用update()通知EventLoop，再由EventLoop调用Poller的epoll_ctl()更新监听事件
 void Channel::update()
 {
-   // add code ...
-   // loop_->updateChannel(this); 
+   // 通过Channel所属的EventLoop，调用poller的相应方法，注册fd的events
+   loop_->updateChannel(this); 
 }
 
 
-// 在所属的EventLoop中把当前的Channel删除
+// 在Channel所属的EventLoop中把当前的Channel删除
  void Channel::remove()
  {
-    // add code ...
-    // loop_->removeChannel(this);
+    loop_->removeChannel(this);
  }
 
 

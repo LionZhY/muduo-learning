@@ -19,7 +19,7 @@ static EventLoop* CheckLoopNotNull(EventLoop* loop)
 TcpServer::TcpServer(EventLoop* loop,              // mainLoop指针
                      const InetAddress& listenAddr,// 监听地址
                      const std::string& nameArg,   // 服务器名称
-                     Option option = kNoReusePort) // 端口复用选项
+                     Option option) // 端口复用选项(默认= kNoReusePort)
     : loop_(CheckLoopNotNull(loop))  
     , ipPort_(listenAddr.toIpPort()) // 监听地址 IP:Port
     , name_(nameArg) 

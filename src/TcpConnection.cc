@@ -141,9 +141,10 @@ void TcpConnection::connectDestroyed()
     if (state_ == kConnected)
     {
         setState(kDisconnected); // 连接状态设置为已断开
-        channel_->disableAll();  // 清除 Poller 中该 channel 对象注册的所有感兴趣事件
+        channel_->disableAll();  // 清除channel所有感兴趣事件
         connectionCallback_(shared_from_this()); // 通知用户连接销毁
     }
+
     channel_->remove(); // 从 Poller 中移除 Channel
 }
 

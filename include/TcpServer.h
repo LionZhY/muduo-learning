@@ -79,7 +79,7 @@ private:
     std::unique_ptr<Acceptor> acceptor_; // 智能指针管理Acceptor  运行在mainLoop负责监听新连接事件
     std::shared_ptr<EventLoopThreadPool> threadPool_; // 管理一个线程池 one loop per thread
 
-    ConnectionCallback connectionCallback_;       // 有新连接时的回调
+    ConnectionCallback connectionCallback_;       // 连接建立or断开的回调
     MessageCallback messageCallback_;             // 有读写事件发生时的回调
     WriteCompleteCallback writeCompleteCallback_; // 消息发送完成后的回调
 

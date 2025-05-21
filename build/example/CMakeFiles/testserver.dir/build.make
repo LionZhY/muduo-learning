@@ -73,15 +73,15 @@ example/CMakeFiles/testserver.dir/testserver.cc.o: example/CMakeFiles/testserver
 example/CMakeFiles/testserver.dir/testserver.cc.o: ../example/testserver.cc
 example/CMakeFiles/testserver.dir/testserver.cc.o: example/CMakeFiles/testserver.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/zhangyan/projects/muduo-learning/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object example/CMakeFiles/testserver.dir/testserver.cc.o"
-	cd /home/zhangyan/projects/muduo-learning/build/example && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT example/CMakeFiles/testserver.dir/testserver.cc.o -MF CMakeFiles/testserver.dir/testserver.cc.o.d -o CMakeFiles/testserver.dir/testserver.cc.o -c /home/zhangyan/projects/muduo-learning/example/testserver.cc
+	cd /home/zhangyan/projects/muduo-learning/build/example && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT example/CMakeFiles/testserver.dir/testserver.cc.o -MF CMakeFiles/testserver.dir/testserver.cc.o.d -o CMakeFiles/testserver.dir/testserver.cc.o -c /home/zhangyan/projects/muduo-learning/example/testserver.cc
 
 example/CMakeFiles/testserver.dir/testserver.cc.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/testserver.dir/testserver.cc.i"
-	cd /home/zhangyan/projects/muduo-learning/build/example && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/zhangyan/projects/muduo-learning/example/testserver.cc > CMakeFiles/testserver.dir/testserver.cc.i
+	cd /home/zhangyan/projects/muduo-learning/build/example && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/zhangyan/projects/muduo-learning/example/testserver.cc > CMakeFiles/testserver.dir/testserver.cc.i
 
 example/CMakeFiles/testserver.dir/testserver.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/testserver.dir/testserver.cc.s"
-	cd /home/zhangyan/projects/muduo-learning/build/example && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/zhangyan/projects/muduo-learning/example/testserver.cc -o CMakeFiles/testserver.dir/testserver.cc.s
+	cd /home/zhangyan/projects/muduo-learning/build/example && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/zhangyan/projects/muduo-learning/example/testserver.cc -o CMakeFiles/testserver.dir/testserver.cc.s
 
 # Object files for target testserver
 testserver_OBJECTS = \
