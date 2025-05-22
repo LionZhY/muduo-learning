@@ -2,11 +2,12 @@
 cmake_minimum_required(VERSION 3.0)
 project(muduo-learning) #锁定项目的工作目录
 
-#设置全局的c++标准
+#设置全局的c++标准 使用C++11标准编译
 set (CMAKE_CXX_STANDARD 11) 
 set (CMAKE_CXX_STANDARD_REQUIRED True)
 
-#链接必要的库，比如刚刚我们写好的在src文件Cmakelists中muduo-core_lib静态库，还有全局链接库
+
+#设置库输出目录  所有生成的 .a（静态库）或 .so（动态库）文件会被输出到 <项目根目录>/lib 路径下
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 #示例静态库的输出
