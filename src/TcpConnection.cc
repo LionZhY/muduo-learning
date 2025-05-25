@@ -140,8 +140,8 @@ void TcpConnection::connectDestroyed()
 {
     if (state_ == kConnected)
     {
-        setState(kDisconnected); // 连接状态设置为已断开
-        channel_->disableAll();  // 清除channel所有感兴趣事件
+        setState(kDisconnected);                 // 连接状态设置为已断开
+        channel_->disableAll();                  // 清除channel所有感兴趣事件
         connectionCallback_(shared_from_this()); // 通知用户连接销毁
     }
 

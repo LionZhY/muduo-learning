@@ -42,7 +42,7 @@ TcpServer::~TcpServer()
     for (auto &item : connections_) // 每个 item 是一个 <连接名, TcpConnectionPtr> 键值对
     {
         TcpConnectionPtr conn(item.second); // 取出原有的 TcpConnectionPtr，赋值给局部变量 conn
-        item.second.reset(); // 原来的 TcpConnectionPtr 清空（释放引用）
+        item.second.reset();                // 原来的 TcpConnectionPtr 清空（释放引用）
         
         // 分发到对应 subLoop 中执行连接销毁操作 TcpConnection::getLoop()
         conn->getLoop()->runInLoop(
@@ -145,7 +145,7 @@ void TcpServer::removeConnectionInLoop(const TcpConnectionPtr& conn)
     connections_.erase(conn->name()); 
 
     // 向subLoop提交connectDestroyed()任务 subLoop执行请清理资源
-    EventLoop* ioLoop = conn->getLoop(); // 获取当前连接所属的subLoop
+    EventLoop* ioLoop = conn->getLoop(); 
     ioLoop->queueInLoop( 
         std::bind(&TcpConnection::connectDestroyed, conn) ); 
 }

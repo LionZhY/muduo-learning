@@ -76,10 +76,10 @@ private:
     // 连接状态枚举
     enum StateE
     {
-        kDisconnected, // 已经断开连接
-        kConnecting,   // 正在连接
-        kConnected,    // 已连接
-        kDisconnecting,// 正在断开连接
+        kDisconnected, // 已经断开连接   0
+        kConnecting,   // 正在连接      1
+        kConnected,    // 已连接        2
+        kDisconnecting,// 正在断开连接   3
     };
 
     // 修改连接状态

@@ -6,9 +6,9 @@
 
 
 // 事件定义
-const int Channel::kNoneEvent  = 0;                  // 不监听任何事件
-const int Channel::kReadEvent  = EPOLLIN | EPOLLPRI; // 监听EPOLLIN（可读）
-const int Channel::kWriteEvent = EPOLLOUT;           // 监听EPOLLOUT（可写）
+const int Channel::kNoneEvent  = 0;                  // 不监听任何事件       0 
+const int Channel::kReadEvent  = EPOLLIN | EPOLLPRI; // 监听EPOLLIN（可读）  0x001 | 0x002 = 0x003 = 3
+const int Channel::kWriteEvent = EPOLLOUT;           // 监听EPOLLOUT（可写） 0x004 = 4
 
 
 // 构造和析构

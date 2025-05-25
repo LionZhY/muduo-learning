@@ -64,6 +64,12 @@ public:
     void disableWriting() { events_ &= ~kWriteEvent;  update(); } // 取消监听可写
     void disableAll()     { events_ = kNoneEvent;     update(); } // 取消监听所有事件
 
+    /**
+     *  events_ = 0     0000 0000   不监听任何事件
+     *  events_ = 3     0000 0011   监听可读
+     *  events_ = 4     0000 0100   监听可写
+     *  events_ = 7     0000 0111   监听可读+可写
+     */
 
     // 查询 fd 当前监听事件状态
     bool isNoneEvent() const { return events_ == kNoneEvent; } // 当前是否无事件监听
