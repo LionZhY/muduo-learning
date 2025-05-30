@@ -7,10 +7,9 @@
 // 获取日志唯一的实例对象 单例
 Logger& Logger::instance()
 {
-    static Logger logger;
+    static Logger logger; // static保证 logger 只会被创建一次，并在整个程序生命周期内存在
     return logger;
 }
-
 
 // 设置日志级别
 void Logger::setLogLevel(int level)
@@ -19,14 +18,12 @@ void Logger::setLogLevel(int level)
 }
 
 
-// 写日志  
-// 将日志级别、当前时间和日志信息格式化后输出到 标准输出（控制台）  
-// 格式：[级别信息] time : msg    
-// 例如 [INFO] 2025-04-01 12:34:56 : This is a log message.
-void Logger::log(std::string msg) // msg是要输出的内容
+// 写日志 (将日志输出到控制台)
+// 格式：[级别信息] time : msg  例如 [INFO] 2025-04-01 12:34:56 : This is a log message.
+void Logger::log(std::string msg)
 {
-    std::string pre = "";
-    switch (loglevel_) // 根据loglevel_确定日志级别前缀
+    std::string pre = ""; // 日志级别前缀
+    switch(loglevel_) // 根据日志级别确定前缀
     {
     case INFO:
         pre = "[INFO]";
@@ -44,8 +41,7 @@ void Logger::log(std::string msg) // msg是要输出的内容
         break;
     }
 
-    // 打印时间和msg
-    // 格式：[级别信息] time : msg
-    std::cout << pre + Timestamp::now().toString() << " : " << msg << std::endl;
-
+    // 打印 前缀pre + 时间 + 日志msg
+    // 格式：[级别信息] time : msg  例如 [INFO] 2025-04-01 12:34:56 : This is a log message.
+    std::cout << pre + Timestamp::now().toString() << " : " << msg << std::endl; 
 }
