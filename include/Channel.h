@@ -101,18 +101,18 @@ private:
 
 
     // 事件类型
-    static const int kNoneEvent;    // 不监听任何事件
-    static const int kReadEvent;    // 监听EPOLLIN（可读）
-    static const int kWriteEvent;   // 监听EPOLLOUT（可写）
+    static const int kNoneEvent;  // 不监听任何事件
+    static const int kReadEvent;  // 监听EPOLLIN（可读）
+    static const int kWriteEvent; // 监听EPOLLOUT（可写）
 
     
-    EventLoop *loop_;   // 事件循环
-    const int fd_;      // 监听的文件描述符
+    EventLoop *loop_; // 事件循环
+    const int fd_;    // 文件描述符，Poller的监听对象
 
-    int events_;        // 注册fd感兴趣的事件 (如EPOLLIN EPOLLOUT)
-    int revents_;       // Poller返回的实际发生的事件
+    int events_;      // 注册fd感兴趣的事件 (如EPOLLIN EPOLLOUT)
+    int revents_;     // Poller返回的实际发生的事件
 
-    int index_;         // Poller内部标识（channel对于Poller的状态，“未添加、已添加、已删除”）
+    int index_;       // Poller内部标识（channel对于Poller的状态，“未添加、已添加、已删除”）
 
     // 生命周期管理
     std::weak_ptr<void> tie_; // 观察绑定的shared_ptr，防止对象提前销毁

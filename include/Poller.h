@@ -46,7 +46,7 @@ public:
 
 
 protected:
-    // map <key: sockfd,  value: sockfd所属的Channel通道类型>  内部管理所有已注册的通道对象
+    // map <sockfd, sockfd所属的Channel>  内部管理所有已注册的通道对象
     using ChannelMap = std::unordered_map<int, Channel*>;
     ChannelMap channels_;
 

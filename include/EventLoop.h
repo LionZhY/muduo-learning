@@ -66,14 +66,14 @@ private:
 
     using ChannelList = std::vector<Channel*>; // 当前活动的事件channel集合
 
-    std::atomic_bool looping_;      // 事件循环是否正在进行 原子操作 底层通过CAS实现
-    std::atomic_bool quit_;         // 标识退出loop循环
+    std::atomic_bool looping_; // 事件循环是否正在进行 原子操作 底层通过CAS实现
+    std::atomic_bool quit_;    // 标识退出loop循环
 
-    const pid_t threadId_;          // 记录当前EventLoop是被哪个线程id创建的（标识当前EventLoop的所属线程id）
+    const pid_t threadId_;     // 记录当前EventLoop是被哪个线程id创建的（标识当前EventLoop的所属线程id）
 
-    Timestamp pollReturnTime_;      // Poller返回发生事件的Channels的时间点
-    std::unique_ptr<Poller> poller_;// 使用 RAII 管理的 IO 多路复用器
-
+    Timestamp pollReturnTime_;       // Poller返回发生事件的Channels的时间点
+    std::unique_ptr<Poller> poller_; // 使用 RAII 管理的 IO 多路复用器
+ 
     int wakeupFd_; // 当mainLoop获取一个新用户的Channel，需通过轮询算法选择一个subLoop，通过该成员唤醒subLoop处理Channel
     std::unique_ptr<Channel> wakeupChannel_; // 封装 wakeupFd_ 并监听其可读事件
 

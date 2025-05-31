@@ -40,7 +40,6 @@ private:
     // 更新channel，其实就是调用epoll_ctl
     void update(int operation, Channel* channel);
 
-
     
     int epollfd_;       // 用于标识epoll实例   epoll_creat 创建返回的fd保存在epollfd_中
 
